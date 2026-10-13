@@ -8,3 +8,7 @@ export function useL() {
 }
 
 export const yen = (n: number) => `¥${n.toLocaleString('en-US')}`
+export const monthLabel = (ym: string, lang: 'en' | 'ja') => {
+  const [y, m] = ym.split('-').map(Number)
+  return lang === 'ja' ? `${y}年${m}月` : new Date(y, m - 1, 1).toLocaleString('en-GB', { month: 'short', year: 'numeric' })
+}

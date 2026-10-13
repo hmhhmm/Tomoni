@@ -1,11 +1,20 @@
 export type Lang = 'en' | 'ja'
 export type Pair = { en: string; ja: string }
-export type Role = 'host' | 'tenant' | 'family' | 'coordinator' | null
+export type Persona = 'host' | 'tenant' | 'family' | null
 
 export type HelpId = 'groceries' | 'garden' | 'cooking' | 'company' | 'walks' | 'parcels'
+export type Slot = 'wd-am' | 'wd-pm' | 'wd-eve' | 'we-am' | 'we-pm' | 'we-eve'
+export type Help = { h: number; slot: Slot }
+export type Helps = Partial<Record<HelpId, Help>>
+
 export type Residence = 'student' | 'resident' | 'limited'
+export type LangCode = 'ja' | 'en' | 'ms' | 'vi' | 'tl' | 'hi' | 'zh'
+export type LangLevel = 'native' | 'fluent' | 'conversational' | 'basic'
+export type SpokenLang = { code: LangCode; level: LangLevel }
+
 export type CheckinStatus = 'good' | 'notgood' | 'missed' | 'pending'
-export type Stage = 'meet' | 'trial' | 'pact' | 'living' | 'ended'
+export type Stage = 'none' | 'meet' | 'trial' | 'pact' | 'living' | 'ended'
+export type Side = 'host' | 'tenant'
 
 export interface Listing {
   id: string
@@ -14,16 +23,23 @@ export interface Listing {
   area: Pair
   areaId: string
   station: Pair
+  walkMin: number
+  lat: number
+  lng: number
   standardRent: number
   homeshareRent: number
   tier: 'standard' | 'companionship'
-  helps: Partial<Record<HelpId, number>>
-  languages: string[]
+  helps: Helps
+  languages: LangCode[]
   gender: 'any' | 'women' | 'men'
   pets: boolean
   hue: number
   sizeJo: number
+  bathroom: 'shared' | 'private'
+  furnished: boolean
+  availableFrom: string // YYYY-MM
   bio: Pair
+  since: number // years living in the house
 }
 
 export interface Applicant {
@@ -31,16 +47,16 @@ export interface Applicant {
   name: string
   age: number
   country: Pair
-  languages: Pair
   occupation: Pair
+  residence: Residence
   verified: boolean
-  skills: Pair[]
-  availability: Pair
-  reasons: Pair[]
+  langs: SpokenLang[]
+  skills: HelpId[]
+  availability: Slot[]
   hue: number
   intro: Pair
-  residence: Residence
-  status: 'new' | 'meeting' | 'declined'
+  status: 'new' | 'chatting' | 'declined'
+  appliedAt: string
 }
 
 export interface Message {
@@ -51,6 +67,7 @@ export interface Message {
   origLang: Lang
   when: string
   flag?: 'care' | 'money'
+  untranslated?: boolean
 }
 
 export interface Flag {
@@ -77,7 +94,7 @@ export interface TaskEntry {
   id: string
   help: HelpId
   hours: number
-  day: Pair
+  date: string // ISO date
   status: 'pending' | 'confirmed'
 }
 
@@ -94,4 +111,24 @@ export interface ListingDraft {
   quiet: string
   guests: 'ask' | 'sometimes' | 'no'
   gender: 'any' | 'women' | 'men'
+  published: boolean
+}
+
+export interface TenantProfile {
+  name: string
+  age: number
+  langs: SpokenLang[]
+  residence: Residence
+  skills: HelpId[]
+  availability: Slot[]
+  otherHours: number
+  verifyStep: number // 0 profile, 1 residence, 2 ID, 3 references, 4 done
+  idDone: boolean
+  refs: string[]
+}
+
+export interface Application {
+  status: 'sent' | 'chatting' | 'declined' | 'withdrawn'
+  sentAt: string
+  message: string
 }

@@ -2,11 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { EyeOff, Flag, Check } from 'lucide-react'
-import { Screen } from '../../components/Screen'
-import { Card } from '../../components/Card'
-import { Button } from '../../components/Button'
-import { ChoiceChip } from '../../components/Chip'
-import { Notice } from '../../components/Misc'
+import { Page, Notice } from '../../components/domain/Bits'
+import { Button } from '../../components/ui/Button'
+import { Pill } from '../../components/ui/Chip'
 import { useStore } from '../../store'
 
 const QS = ['q1', 'q2', 'q3'] as const
@@ -15,35 +13,50 @@ const OPTS = ['great', 'fine', 'notgreat'] as const
 export function Pulse() {
   const { t } = useTranslation()
   const nav = useNavigate()
-  const { pulseDone, setPulseDone } = useStore()
+  const { pulse, setPulse } = useStore()
   const [ans, setAns] = useState<Record<string, string>>({})
   const ready = QS.every((q) => ans[q])
-
   return (
-    <Screen title={t('pulse.title')} lede={t('pulse.lede')} footer>
-      <Notice tone="purple" icon={<EyeOff size={22} className="text-purple-700" aria-hidden />} title={t('pulse.anon')}>{t('pulse.anonBody')}</Notice>
-      {pulseDone ? (
-        <Notice tone="teal" live icon={<Check size={22} className="text-teal-700" aria-hidden />} title={t('pulse.thanks')}>{t('pulse.thanksBody')}</Notice>
-      ) : (
-        <>
-          {QS.map((q) => (
-            <Card key={q}>
-              <fieldset>
-                <legend className="font-heading text-lg font-semibold">{t(`pulse.${q}`)}</legend>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {OPTS.map((o) => <ChoiceChip key={o} selected={ans[q] === o} onClick={() => setAns({ ...ans, [q]: o })}>{t(`pulse.${o}`)}</ChoiceChip>)}
+    <Page narrow className="py-8">
+      <h1 className="text-[1.75rem] font-semibold">{t('pulse.title')}</h1>
+      <p className="mt-1 text-base text-muted">{t('pulse.lede')}</p>
+      <div className="mt-6 space-y-4">
+        <Notice tone="purple" icon={<EyeOff size={20} aria-hidden className="text-purple-700" />} title={t('pulse.anon')}>
+          {t('pulse.anonBody')}
+        </Notice>
+        {pulse ? (
+          <Notice tone="teal" live icon={<Check size={20} aria-hidden className="text-teal-700" />} title={t('pulse.thanks')}>
+            {t('pulse.thanksBody')}
+          </Notice>
+        ) : (
+          <>
+            {QS.map((q) => (
+              <fieldset key={q} className="rounded-card border border-line p-5">
+                <legend className="px-1 text-lg font-semibold">{t(`pulse.${q}`)}</legend>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {OPTS.map((o) => (
+                    <Pill key={o} selected={ans[q] === o} onClick={() => setAns({ ...ans, [q]: o })}>
+                      {t(`pulse.${o}`)}
+                    </Pill>
+                  ))}
                 </div>
               </fieldset>
-            </Card>
-          ))}
-          <Button disabled={!ready} onClick={setPulseDone}>{t('pulse.send')}</Button>
-        </>
-      )}
-      <Card tone="amber">
-        <p className="font-heading text-lg font-semibold">{t('pulse.concernTitle')}</p>
-        <p className="text-base">{t('pulse.concernBody')}</p>
-        <Button className="mt-3" variant="secondary" icon={<Flag size={20} aria-hidden />} onClick={() => nav('/safety?report=1')}>{t('pulse.concern')}</Button>
-      </Card>
-    </Screen>
+            ))}
+            <div className="flex justify-end">
+              <Button variant="dark" size="lg" disabled={!ready} onClick={() => setPulse(ans)}>
+                {t('pulse.send')}
+              </Button>
+            </div>
+          </>
+        )}
+        <section className="rounded-card border border-line p-5">
+          <h2 className="text-lg font-semibold">{t('pulse.concernTitle')}</h2>
+          <p className="text-base text-muted">{t('pulse.concernBody')}</p>
+          <Button className="mt-3" variant="secondary" icon={<Flag size={18} aria-hidden />} onClick={() => nav('/safety?report=1')}>
+            {t('pulse.concern')}
+          </Button>
+        </section>
+      </div>
+    </Page>
   )
 }

@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Phone, PhoneCall, Siren, Flag, UserRound, Check, X } from 'lucide-react'
-import { Screen } from '../components/Screen'
-import { Card } from '../components/Card'
-import { Button } from '../components/Button'
-import { ChoiceChip } from '../components/Chip'
-import { Notice } from '../components/Misc'
+import { ArrowLeft, Check, Flag, Phone, PhoneCall, Siren, UserRound, X } from 'lucide-react'
+import { Page, Notice } from '../components/domain/Bits'
+import { Button } from '../components/ui/Button'
+import { Pill } from '../components/ui/Chip'
+import { Textarea } from '../components/ui/Field'
 import { useStore } from '../store'
 import { useUI } from '../ui'
 
@@ -21,86 +20,140 @@ export function Safety() {
   const [cat, setCat] = useState<string | null>(null)
   const [detail, setDetail] = useState('')
   const [sent, setSent] = useState(false)
-  const reportRef = useRef<HTMLDivElement>(null)
+  const reportRef = useRef<HTMLElement>(null)
 
-  useEffect(() => { if (params.get('report')) reportRef.current?.scrollIntoView({ block: 'start' }) }, [params])
-
+  useEffect(() => {
+    if (params.get('report')) reportRef.current?.scrollIntoView({ block: 'center' })
+  }, [params])
   const cats = ['uncomfortable', 'money', 'tasks', 'safety', 'other']
-  const submit = () => {
-    addFlag({ caseId: 'c1', kind: 'report', text: `${t(`safety.cat.${cat}`)}${detail ? `: ${detail}` : ''}` })
-    setSent(true)
-  }
-  const steps = [1, 2, 3, 4]
 
   return (
-    <Screen title={t('safety.title')} lede={t('safety.lede')} footer
-      action={undefined}>
-      <Button variant="ghost" block={false} className="-ml-3 -mt-3" icon={<ArrowLeft size={20} aria-hidden />} onClick={() => nav(-1)}>{t('common.back')}</Button>
+    <Page className="py-8">
+      <button
+        type="button"
+        onClick={() => nav(-1)}
+        className="mb-4 inline-flex items-center gap-1.5 text-base font-medium underline-offset-4 hover:underline"
+      >
+        <ArrowLeft size={18} aria-hidden />
+        {t('common.back')}
+      </button>
+      <h1 className="text-[1.75rem] font-semibold">{t('safety.title')}</h1>
+      <p className="mt-1 text-base text-muted">{t('safety.lede')}</p>
 
-      <Card tone="rose">
-        <h2 className="flex items-center gap-2 font-heading text-lg font-semibold"><Siren size={22} aria-hidden /> {t('safety.emergency')}</h2>
-        <p className="text-base">{t('safety.emergencyBody')}</p>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-white p-3 text-center"><p className="font-heading text-4xl font-bold text-rose-700">110</p><p className="text-base font-medium">{t('safety.police')}</p></div>
-          <div className="rounded-2xl bg-white p-3 text-center"><p className="font-heading text-4xl font-bold text-rose-700">119</p><p className="text-base font-medium">{t('safety.ambulance')}</p></div>
-        </div>
-      </Card>
-
-      <Card>
-        <h2 className="flex items-center gap-2 font-heading text-lg font-semibold"><Phone size={22} aria-hidden /> {t('safety.line')}</h2>
-        <p className="text-base text-muted">{t('safety.lineBody')}</p>
-        {calling ? (
-          <div role="status" className="mt-3 rounded-2xl bg-purple-50 p-3 text-base">
-            <p className="font-semibold">{t('safety.calling')}</p>
-            <Button className="mt-2" variant="secondary" icon={<X size={18} aria-hidden />} onClick={() => setCalling(false)}>{t('safety.hangup')}</Button>
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2 [&>*]:min-w-0">
+        <section className="rounded-card border border-rose-200 bg-rose-50 p-6">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Siren size={20} aria-hidden /> {t('safety.emergency')}
+          </h2>
+          <p className="mt-1 text-base">{t('safety.emergencyBody')}</p>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {[
+              ['110', t('safety.police')],
+              ['119', t('safety.ambulance')],
+            ].map(([n, l]) => (
+              <div key={n} className="min-w-0 rounded-card bg-white p-4 text-center">
+                <p className="font-heading text-4xl font-bold text-rose-700">{n}</p>
+                <p className="break-words text-base font-medium">{l}</p>
+              </div>
+            ))}
           </div>
-        ) : (
-          <Button className="mt-3" icon={<PhoneCall size={20} aria-hidden />} onClick={() => setCalling(true)}>{t('safety.call')}</Button>
-        )}
-      </Card>
+        </section>
 
-      <Card>
-        <h2 className="flex items-center gap-2 font-heading text-lg font-semibold"><UserRound size={22} aria-hidden /> {t('safety.coordinator')}</h2>
-        <p className="text-base text-muted">{t('safety.coordinatorBody')}</p>
-        {coord ? (
-          <p role="status" className="mt-3 flex items-center gap-2 rounded-2xl bg-teal-50 p-3 text-base font-medium text-teal-700"><Check size={20} aria-hidden /> {t('safety.coordinatorSent')}</p>
-        ) : (
-          <Button className="mt-3" variant="secondary" onClick={() => { setCoord(true); say(t('safety.coordinatorSent')) }}>{t('safety.coordinatorBtn')}</Button>
-        )}
-      </Card>
+        <section className="rounded-card border border-line p-6">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Phone size={20} aria-hidden /> {t('safety.line')}
+          </h2>
+          <p className="mt-1 text-base text-muted">{t('safety.lineBody')}</p>
+          {calling ? (
+            <div role="status" className="mt-4 rounded-card bg-surface p-4">
+              <p className="font-semibold">{t('safety.calling')}</p>
+              <Button className="mt-3" variant="secondary" icon={<X size={16} aria-hidden />} onClick={() => setCalling(false)}>
+                {t('safety.hangup')}
+              </Button>
+            </div>
+          ) : (
+            <Button className="mt-4" variant="dark" icon={<PhoneCall size={18} aria-hidden />} onClick={() => setCalling(true)}>
+              {t('safety.call')}
+            </Button>
+          )}
+        </section>
 
-      <div ref={reportRef} className="scroll-mt-4">
-        <Card tone="amber">
-          <h2 className="flex items-center gap-2 font-heading text-lg font-semibold"><Flag size={22} aria-hidden /> {t('safety.report')}</h2>
+        <section className="rounded-card border border-line p-6">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <UserRound size={20} aria-hidden /> {t('safety.coordinator')}
+          </h2>
+          <p className="mt-1 text-base text-muted">{t('safety.coordinatorBody')}</p>
+          {coord ? (
+            <p role="status" className="mt-4 flex items-center gap-2 rounded-card bg-teal-50 p-3 text-base font-medium text-teal-700">
+              <Check size={18} aria-hidden /> {t('safety.coordinatorSent')}
+            </p>
+          ) : (
+            <Button
+              className="mt-4"
+              variant="secondary"
+              onClick={() => {
+                setCoord(true)
+                say(t('safety.coordinatorSent'))
+              }}
+            >
+              {t('safety.coordinatorBtn')}
+            </Button>
+          )}
+        </section>
+
+        <section ref={reportRef} className="scroll-mt-28 rounded-card border border-amber-200 bg-amber-50 p-6">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Flag size={20} aria-hidden /> {t('safety.report')}
+          </h2>
           {sent ? (
-            <Notice tone="teal" live title={t('safety.reportSent')}>{t('safety.reportSentBody')}</Notice>
+            <div className="mt-3">
+              <Notice tone="teal" live title={t('safety.reportSent')}>
+                {t('safety.reportSentBody')}
+              </Notice>
+            </div>
           ) : (
             <>
-              <p className="text-base">{t('safety.reportBody')}</p>
-              <div className="mt-3 flex flex-wrap gap-2" role="radiogroup" aria-label={t('safety.report')}>
-                {cats.map((c) => <ChoiceChip key={c} selected={cat === c} onClick={() => setCat(c)}>{t(`safety.cat.${c}`)}</ChoiceChip>)}
+              <p className="mt-1 text-base">{t('safety.reportBody')}</p>
+              <div className="mt-4 flex flex-wrap gap-2" role="radiogroup" aria-label={t('safety.report')}>
+                {cats.map((c) => (
+                  <Pill key={c} selected={cat === c} onClick={() => setCat(c)}>
+                    {t(`safety.cat.${c}`)}
+                  </Pill>
+                ))}
               </div>
-              <label htmlFor="rep" className="mt-3 block text-base font-medium">{t('safety.detail')}</label>
-              <textarea id="rep" rows={3} value={detail} onChange={(e) => setDetail(e.target.value)} className="mt-1 w-full rounded-input border border-line bg-white p-3 text-base" />
-              <Button className="mt-3" disabled={!cat} onClick={submit}>{t('safety.reportSend')}</Button>
+              <label htmlFor="rep" className="mb-1.5 mt-4 block text-sm font-semibold">
+                {t('safety.detail')}
+              </label>
+              <Textarea id="rep" rows={3} value={detail} onChange={(e) => setDetail(e.target.value)} />
+              <Button
+                className="mt-4"
+                variant="dark"
+                disabled={!cat}
+                onClick={() => {
+                  addFlag({ caseId: 'c1', kind: 'report', text: `${t(`safety.cat.${cat}`)}${detail ? `: ${detail}` : ''}` })
+                  setSent(true)
+                }}
+              >
+                {t('safety.reportSend')}
+              </Button>
             </>
           )}
-        </Card>
-      </div>
+        </section>
 
-      <Card>
-        <h2 className="font-heading text-lg font-semibold">{t('ladder.title')}</h2>
-        <p className="text-base text-muted">{t('ladder.lede')}</p>
-        <ol className="mt-4 space-y-0">
-          {steps.map((i) => (
-            <li key={i} className="relative flex gap-3 pb-4 last:pb-0">
-              {i < 4 && <span aria-hidden className="absolute left-[1.1rem] top-10 h-[calc(100%-2rem)] w-0.5 bg-purple-100" />}
-              <span className="relative z-10 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-purple-600 font-heading font-semibold text-white">{i}</span>
-              <div><p className="font-heading font-semibold leading-tight">{t(`ladder.s${i}`)}</p><p className="text-base text-muted">{t(`ladder.d${i}`)}</p></div>
-            </li>
-          ))}
-        </ol>
-      </Card>
-    </Screen>
+        <section className="rounded-card border border-line p-6 lg:col-span-2">
+          <h2 className="text-lg font-semibold">{t('ladder.title')}</h2>
+          <p className="text-base text-muted">{t('ladder.lede')}</p>
+          <ol className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <li key={i} className="relative">
+                <span className="grid h-9 w-9 place-items-center rounded-full bg-ink font-heading font-semibold text-white">{i}</span>
+                <p className="mt-3 font-semibold leading-tight">{t(`ladder.s${i}`)}</p>
+                <p className="mt-1 text-base text-muted">{t(`ladder.d${i}`)}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+    </Page>
   )
 }
