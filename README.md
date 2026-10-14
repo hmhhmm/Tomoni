@@ -78,6 +78,8 @@ scripts/check-i18n.mjs
 - **ID consent**: the ID check explains what is kept (result, residence status and expiry) and what is deleted (card and selfie images), and starts only after consent.
 - **Work permission**: students confirm permission to engage in activity outside their status (資格外活動許可). Without it, like visas that limit activity, they see companionship-only rooms.
 - **Check-ins**: two missed in a row raise an alert on the coordinator desk.
+- **Escalation ladder** (6 steps): nudge, coordinator call, written warning, mediated meeting, pre-agreed end, removal from Tomoni. "Switch to standard rent" is left out until a labour lawyer has reviewed it.
+- **Family summary**: "This week in brief" on the family view is a template built only from check-ins, confirmed hours and plans. It never uses message content.
 - **Text size** (A / A+ / A++) is in the header for hosts and family.
 - **Japanese and English** cover every string. Messages are shown in the viewer's language with the original beneath and an "AI-assisted" label.
 

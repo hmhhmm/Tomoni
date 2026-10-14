@@ -1,5 +1,8 @@
 import type { Stage } from './types'
 
+/** Escalation ladder steps (ladder.s1-s6). "Switch to standard rent" is left out pending a labour lawyer's view. */
+export const LADDER = [1, 2, 3, 4, 5, 6] as const
+
 /** Position of each stage in the Meet → Trial → Agreement → Living stepper. */
 export const stageIndex = (stage: Stage): number => ({ none: 0, meet: 0, trial: 1, pact: 2, living: 3, ended: 0 })[stage]
 

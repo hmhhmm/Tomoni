@@ -11,6 +11,7 @@ import { agreedHelps, companionOnly, useStore } from '../store'
 import { HELP_DEFAULT, HELP_ORDER } from '../data/seed'
 import { hoursOf, costs } from '../data/pricing'
 import { SLOTS } from '../data/matching'
+import { LADDER } from '../data/journey'
 import { HELP_ICONS } from '../lib/helps'
 import { yen } from '../lib/hooks'
 import { useUI } from '../ui'
@@ -193,7 +194,7 @@ export function Agreement() {
       n: 8,
       body: (
         <ol className="list-decimal space-y-1 pl-5">
-          {[1, 2, 3, 4].map((i) => (
+          {LADDER.map((i) => (
             <li key={i}>{t(`ladder.s${i}`)}</li>
           ))}
         </ol>
