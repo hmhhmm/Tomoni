@@ -7,7 +7,7 @@ import { Pill } from '../../components/ui/Chip'
 import { Button } from '../../components/ui/Button'
 import { Field, Input } from '../../components/ui/Field'
 import { Notice } from '../../components/domain/Bits'
-import { useStore } from '../../store'
+import { companionOnly, useStore } from '../../store'
 import { toggle } from '../../lib/format'
 import type { LangCode, Residence } from '../../data/types'
 import { RULES } from '../../tokens'
@@ -42,12 +42,12 @@ export function Verify() {
         onNext={() => nav('/explore')}
         nextLabel={t('onb.browse')}
       >
-        {tenant.residence === 'student' && (
+        {tenant.residence === 'student' && tenant.workPermit && (
           <Notice tone="purple" title={t('onb.trackerTitle')}>
             {t('onb.trackerBody', { n: RULES.studentWeeklyLimit })}
           </Notice>
         )}
-        {tenant.residence === 'limited' && (
+        {companionOnly(tenant) && (
           <Notice tone="teal" title={t('onb.companionTitle')}>
             {t('onb.companionBody')}
           </Notice>
@@ -55,7 +55,7 @@ export function Verify() {
         <Button
           variant="secondary"
           onClick={() => {
-            patchTenant({ verifyStep: 0, idDone: false })
+            patchTenant({ verifyStep: 0, idDone: false, idConsent: false })
             setScan(0)
           }}
         >
@@ -128,6 +128,20 @@ export function Verify() {
               <span className="block text-base text-muted">{t(`onb.res.${r.key}Sub`)}</span>
             </button>
           ))}
+          {tenant.residence === 'student' && (
+            <label className="flex items-start gap-3 rounded-card border border-line p-4 text-base">
+              <input
+                type="checkbox"
+                checked={tenant.workPermit}
+                onChange={(e) => patchTenant({ workPermit: e.target.checked })}
+                className="mt-1 h-5 w-5 accent-purple-600"
+              />
+              <span>
+                <span className="block font-semibold">{t('onb.permit')}</span>
+                <span className="block text-sm text-muted">{tenant.workPermit ? t('onb.permitYes') : t('onb.permitNo')}</span>
+              </span>
+            </label>
+          )}
           <p className="text-sm text-muted">{t('onb.resNote')}</p>
         </div>
       )}
@@ -140,7 +154,27 @@ export function Verify() {
                   <IdCard size={32} aria-hidden className="text-purple-700" />
                   <p className="text-base">{t('onb.idBody')}</p>
                 </div>
-                <Button className="mt-4" variant="dark" icon={<Camera size={18} aria-hidden />} onClick={() => setScan(1)}>
+                <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted">
+                  <li>{t('onb.data1')}</li>
+                  <li>{t('onb.data2')}</li>
+                  <li>{t('onb.data3')}</li>
+                </ul>
+                <label className="mt-4 flex items-start gap-3 text-base">
+                  <input
+                    type="checkbox"
+                    checked={tenant.idConsent}
+                    onChange={(e) => patchTenant({ idConsent: e.target.checked })}
+                    className="mt-1 h-5 w-5 accent-purple-600"
+                  />
+                  <span>{t('onb.consent')}</span>
+                </label>
+                <Button
+                  className="mt-4"
+                  variant="dark"
+                  disabled={!tenant.idConsent}
+                  icon={<Camera size={18} aria-hidden />}
+                  onClick={() => setScan(1)}
+                >
                   {t('onb.startId')}
                 </Button>
               </>

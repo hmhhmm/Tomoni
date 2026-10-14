@@ -24,7 +24,7 @@ import { Modal } from '../../components/ui/Modal'
 import { Textarea } from '../../components/ui/Field'
 import { HourMeter } from '../../components/domain/HourMeter'
 import { MapView } from '../../components/domain/MapView'
-import { useStore } from '../../store'
+import { companionOnly, useStore } from '../../store'
 import { useListings } from '../../lib/listings'
 import { HELP_ICONS } from '../../lib/helps'
 import { HELP_ORDER, APPLICANTS } from '../../data/seed'
@@ -63,7 +63,7 @@ export function ListingDetail() {
   const isSaved = saved.includes(l.id)
   const app = applications[l.id]
   const active = app && app.status !== 'withdrawn'
-  const blocked = tenant.residence === 'limited' && l.tier !== 'companionship'
+  const blocked = companionOnly(tenant) && l.tier !== 'companionship'
   const myFit = fit(
     { skills: tenant.skills, availability: tenant.availability, langs: tenant.langs, verified: tenant.idDone },
     { helps: l.helps, languages: l.languages },

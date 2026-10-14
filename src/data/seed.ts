@@ -386,6 +386,8 @@ export const SEED_TENANT: TenantProfile = {
   skills: ['cooking', 'garden', 'company', 'groceries'],
   availability: ['wd-eve', 'we-am', 'we-pm', 'we-eve'],
   otherHours: 14,
+  workPermit: true,
+  idConsent: true,
   verifyStep: 4,
   idDone: true,
   refs: ['advisor', 'landlord'],

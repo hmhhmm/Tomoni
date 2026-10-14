@@ -3,14 +3,33 @@ import type { Lang } from '../data/types'
 /** Keyword guardrails: transparent and deliberately simple (EN + JA). A real product needs reviewed models plus human review. */
 const CARE =
   /\bbath(e|ing)?\b|\btoilet(ing)?\b|\bfeed(ing)?\s+(me|her|him|them)\b|\bmedic(ine|ation)s?\b|\bpills?\b|\bdiapers?\b|\bchange (my|her|his) clothes\b|(お風呂|風呂|入浴).*(手伝|助|入れ)|トイレ|排泄|おむつ|食べさせ|食事介助|服薬|薬を/i
-const MONEY =
-  /\b(money|bank|transfer|card|pin|inkan|hanko|cash|loan)\b|don'?t tell (anyone|anybody)|keep (it|this) (a )?secret|お金|銀行|振込|振り込|送金|カード|暗証|印鑑|ハンコ|判子|内緒|ないしょ|誰にも言わ/i
+/** Money, cards, passwords, legal documents, wills, large gifts and secrecy (IDEA.md banned list). */
+const MONEY = new RegExp(
+  [
+    String.raw`\b(money|bank|transfer|card|pin|inkan|hanko|cash|loan|password|passcode|guarantor|testament|inheritance|inherit|deed)\b`,
+    String.raw`\b(lend|borrow|loan)\w*\b.{0,25}(money|yen|¥|\d|cash|card)|\blend me\b`,
+    // "will" only as a legal document, never the verb ("I will cook").
+    String.raw`\b(my|your|her|his|a) will\b|\bpower of attorney\b`,
+    String.raw`\b(sign|stamp)\b.{0,15}\b(contract|document|paper|form|agreement)s?\b`,
+    String.raw`\b(gift|present)s?\b.{0,30}(\d|¥|yen)|\bgive you my (house|home|car|savings|money|jewel\w*)\b`,
+    String.raw`don'?t tell (anyone|anybody|my|your)|keep (it|this) (a )?secret|\bour (little )?secret\b|\bbetween (us|you and me)\b`,
+    'お金|銀行|振込|振り込|送金|カード|暗証|印鑑|ハンコ|判子|実印|パスワード|保証人|遺言|相続|契約書|借金',
+    '(お金|円|金).{0,6}(貸|借)|貸してくれ|貸してください|貸してもら',
+    '(プレゼント|贈り物|あげ).{0,10}(万|円)',
+    '内緒|ないしょ|誰にも言わ|秘密に',
+  ].join('|'),
+  'i',
+)
+/** Romantic or sexual pressure: homeshare is a housemate arrangement. */
+const ROMANCE =
+  /\bi love you\b|\bmarry (me|you)\b|\bmarriage\b|\b(be my|my) (girlfriend|boyfriend|wife|husband|lover)\b|\bdate (me|with me)\b|\bgo on a date\b|\bkiss\b|\bsleep (with|together)\b|\bshare (a|my|your) bed\b|愛して|結婚し|付き合って|恋人に|キスし|一緒に寝/i
 
-export type Guardrail = 'care' | 'money' | null
+export type Guardrail = 'care' | 'money' | 'romance' | null
 
 export function detectGuardrail(text: string): Guardrail {
   if (CARE.test(text)) return 'care'
   if (MONEY.test(text)) return 'money'
+  if (ROMANCE.test(text)) return 'romance'
   return null
 }
 
@@ -38,6 +57,7 @@ export const PHRASES: { ja: string; en: string }[] = [
   { ja: 'おやすみなさい。', en: 'Good night.' },
   { ja: 'お風呂を手伝ってくれますか？', en: 'Can you help me bathe?' },
   { ja: 'お金を振り込んでもらえますか？', en: 'Could you transfer some money for me?' },
+  { ja: '5万円貸してもらえますか？', en: 'Could you lend me 50,000 yen?' },
   { ja: '銀行のカードと暗証番号を預かってください。誰にも内緒でお願いします。', en: "Please keep my bank card and PIN. Don't tell anyone." },
 ]
 
