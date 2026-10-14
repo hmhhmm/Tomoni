@@ -72,10 +72,12 @@ export interface Message {
 
 export interface Flag {
   id: string
-  caseId: string
+  /** null when the flag comes from a conversation before any match. */
+  caseId: string | null
   kind: 'money' | 'care' | 'report' | 'notgood'
   text: string
   when: string
+  resolved?: boolean
 }
 
 export interface CaseRow {
@@ -83,11 +85,13 @@ export interface CaseRow {
   household: Pair
   tenant: string
   area: Pair
-  status: 'healthy' | 'trial' | 'attention' | 'alert'
+  status: 'healthy' | 'trial' | 'review' | 'attention' | 'alert'
   week: number
   avgHours: number
   checkins: CheckinStatus[]
   notes: string
+  /** Coordinator time spent on the case so far (illustrative for seeded cases). */
+  coordMinutes: number
 }
 
 export interface TaskEntry {

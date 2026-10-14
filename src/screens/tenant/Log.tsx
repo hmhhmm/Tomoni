@@ -6,7 +6,7 @@ import { Button, LinkButton } from '../../components/ui/Button'
 import { Chip, Pill } from '../../components/ui/Chip'
 import { Stepper } from '../../components/ui/Stepper'
 import { HourMeter } from '../../components/domain/HourMeter'
-import { useStore, weekHours } from '../../store'
+import { agreedHelps, useStore, weekHours } from '../../store'
 import { HELP_ORDER } from '../../data/seed'
 import { HELP_ICONS } from '../../lib/helps'
 import { formatDay } from '../../lib/format'
@@ -17,7 +17,7 @@ import type { HelpId } from '../../data/types'
 export function Log() {
   const { t } = useTranslation()
   const lang = useStore((s) => s.lang)
-  const { helps, tasks, logTask, tenant, patchTenant, match } = useStore()
+  const { pactHelps, declined, tasks, logTask, tenant, patchTenant, match } = useStore()
   const say = useUI((s) => s.say)
   const [pick, setPick] = useState<HelpId | null>(null)
   const active = match.applicantId === 'a1' && (match.stage === 'trial' || match.stage === 'living' || match.stage === 'pact')
@@ -43,15 +43,18 @@ export function Log() {
   const all = weekHours(tasks, false)
   const pendingH = all - done
   const capLeft = RULES.weeklyHourCap - all
-  const options = HELP_ORDER.filter((h) => helps[h])
+  // Only tasks in the agreement, minus any the housemate declined.
+  const agreed = agreedHelps({ pactHelps, declined })
+  const options = HELP_ORDER.filter((h) => agreed[h])
   const student = tenant.residence === 'student'
   const used = tenant.otherHours + all
   const near = used >= RULES.studentWeeklyLimit - 4
 
   const choose = (h: number) => {
     if (!pick) return
-    if (!logTask(pick, h)) {
-      say(t('log.overCap'))
+    const r = logTask(pick, h)
+    if (r !== 'ok') {
+      say(t(r === 'student' ? 'log.overStudent' : 'log.overCap'))
       return
     }
     setPick(null)

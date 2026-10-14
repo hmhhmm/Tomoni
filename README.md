@@ -37,10 +37,12 @@ The coordinator desk is at `/coordinator` and the Safety Centre at `/safety`.
 
 1. Host: **Today → Applicants → Message** Aisyah (the guardrails react if you write about bathing, money or secrets).
 2. **Plan a meet-up**, **Start the trial stay**, **Continue to the agreement**, sign.
-3. Menu → **Finding a room as Aisyah** → sign. You are now living together.
-4. Aisyah logs help in **Help log**. Menu → host → **Today → Confirm**.
-5. Host **Check-in → All good**. Menu → **Family view** to see it.
-6. **Coordinator desk** shows flagged messages and missed check-ins.
+3. Menu → **Finding a room as Aisyah**. Mark any task **I can't do this**, then sign.
+   Any change to the tasks clears both signatures, so the host signs the final version again.
+4. Open the **Coordinator desk** → **Approve agreement**. You are now living together.
+5. Aisyah logs help in **Help log**. Menu → host → **Today → Confirm**.
+6. Host **Check-in → All good**. Menu → **Family view** to see it.
+7. **Coordinator desk** shows flagged messages and missed check-ins. Resolve flags, move a case up the escalation steps and log coordinator time.
 
 Prefer to skip ahead? Menu → **Load sample: week 3 of living together**. Menu → **Start over with fresh sample data** resets everything.
 
@@ -69,6 +71,8 @@ scripts/check-i18n.mjs
 
 - **Search state lives in the URL** (`/explore?where=nakano&cat=pets&sort=cost`), so results are shareable and survive refresh.
 - **Hour cap**: nothing can take weekly help above 10 hours, in the help picker, the agreement, or the help log.
+- **Agreement consent**: the agreement keeps its own copy of the tasks. The housemate can decline any task, any change clears both signatures, and a coordinator approves the signed agreement before the stay starts.
+- **Student limit**: for students, logging is blocked if help plus other work would pass 28 hours a week.
 - **Guardrails**: personal care and medical requests show an inline care-manager card. Money, cards, PIN, inkan and "don't tell anyone" show a warning to both sides and flag the coordinator.
 - **Check-ins**: two missed in a row raise an alert on the coordinator desk.
 - **Text size** (A / A+ / A++) is in the header for hosts and family.

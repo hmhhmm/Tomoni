@@ -1,13 +1,13 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Ban, Check, FileSignature, Lock, PartyPopper, X } from 'lucide-react'
+import { Ban, Check, Clock, FileSignature, Lock, PartyPopper, Undo2, X } from 'lucide-react'
 import { Page, Notice, EmptyState } from '../components/domain/Bits'
 import { Button, LinkButton } from '../components/ui/Button'
 import { Chip, Pill } from '../components/ui/Chip'
 import { Stepper } from '../components/ui/Stepper'
 import { Select } from '../components/ui/Field'
 import { HourMeter } from '../components/domain/HourMeter'
-import { useStore } from '../store'
+import { agreedHelps, useStore } from '../store'
 import { HELP_DEFAULT, HELP_ORDER } from '../data/seed'
 import { hoursOf, costs } from '../data/pricing'
 import { SLOTS } from '../data/matching'
@@ -20,17 +20,22 @@ import { RULES } from '../tokens'
 export function Agreement() {
   const { t } = useTranslation()
   const nav = useNavigate()
-  const { persona, helps, setHelp, draft, match, pactSigned, sign, tenant, applicants } = useStore()
+  const { persona, pactHelps, declined, setPactHelp, toggleDeclined, draft, match, pactSigned, pactApproved, sign, tenant, applicants } = useStore()
   const say = useUI((s) => s.say)
   const viewer = persona === 'tenant' ? 'tenant' : 'host'
-  const total = hoursOf(helps)
-  const c = costs(draft.standardRent, draft.homeshareRent, helps)
+  const agreed = agreedHelps({ pactHelps, declined })
+  const total = hoursOf(agreed)
+  const c = costs(draft.standardRent, draft.homeshareRent, agreed)
   const companion = tenant.residence === 'limited'
   const partner = applicants.find((a) => a.id === match.applicantId)
   const names = { host: t('names.sato'), tenant: viewer === 'tenant' ? tenant.name : (partner?.name ?? tenant.name) }
-  const editable = viewer === 'host' && !(pactSigned.host && pactSigned.tenant)
-  const signable = match.stage === 'pact'
   const both = pactSigned.host && pactSigned.tenant
+  const open = !pactApproved && !both
+  const editable = viewer === 'host' && open
+  // The housemate can mark tasks they can't do while the agreement is still open.
+  const declinable = viewer === 'tenant' && open
+  const signable = match.stage === 'pact'
+  const anySigned = pactSigned.host || pactSigned.tenant
 
   if (match.stage === 'none' || (viewer === 'tenant' && match.applicantId !== 'a1')) {
     return (
@@ -50,7 +55,12 @@ export function Agreement() {
   }
 
   const edit = (id: HelpId, v: { h: number; slot: string } | null) => {
-    if (!setHelp(id, v)) say(t('help.blockedShort'))
+    if (!setPactHelp(id, v)) say(t('help.blockedShort'))
+    else if (anySigned) say(t('pact.cleared'))
+  }
+  const decline = (id: HelpId) => {
+    toggleDeclined(id)
+    if (anySigned) say(t('pact.cleared'))
   }
 
   const sections: { n: number; body: React.ReactNode }[] = [
@@ -67,21 +77,40 @@ export function Agreement() {
             <HourMeter value={total} compact />
           </div>
           <ul className="space-y-3">
-            {HELP_ORDER.filter((id) => helps[id]).map((id) => {
+            {HELP_ORDER.filter((id) => pactHelps[id]).map((id) => {
               const Icon = HELP_ICONS[id]
-              const v = helps[id]!
+              const v = pactHelps[id]!
+              const no = declined.includes(id)
               return (
-                <li key={id} className="rounded-card border border-line p-4">
-                  <div className="flex items-center gap-3 font-semibold">
+                <li key={id} className={`rounded-card border p-4 ${no ? 'border-dashed border-line bg-surface' : 'border-line'}`}>
+                  <div className="flex flex-wrap items-center gap-3 font-semibold">
                     <Icon size={20} aria-hidden />
-                    {t(`help.${id}.title`)}
-                    {!editable && (
-                      <span className="ml-auto text-sm font-normal text-muted">
+                    <span className={no ? 'text-muted line-through' : ''}>{t(`help.${id}.title`)}</span>
+                    {no && <Chip tone="amber">{t('pact.cantDoChip', { name: names.tenant })}</Chip>}
+                    {(!editable || no) && (
+                      <span className={`ml-auto text-sm font-normal text-muted ${no ? 'line-through' : ''}`}>
                         {t('help.hoursPerWeek', { n: v.h })} · {t(`slot.${v.slot}`)}
                       </span>
                     )}
                   </div>
-                  {editable && (
+                  {declinable && (
+                    <Button
+                      className="mt-3"
+                      variant={no ? 'secondary' : 'ghost'}
+                      size="sm"
+                      aria-pressed={no}
+                      icon={no ? <Undo2 size={16} aria-hidden /> : <Ban size={16} aria-hidden />}
+                      onClick={() => decline(id)}
+                    >
+                      {no ? t('pact.canDo') : t('pact.cantDo')}
+                    </Button>
+                  )}
+                  {editable && no && (
+                    <Button className="mt-3" variant="ghost" size="sm" icon={<X size={16} aria-hidden />} onClick={() => edit(id, null)}>
+                      {t('common.remove')}
+                    </Button>
+                  )}
+                  {editable && !no && (
                     <div className="mt-3 flex flex-wrap items-center gap-3">
                       <Stepper
                         value={v.h}
@@ -118,11 +147,12 @@ export function Agreement() {
               )
             })}
           </ul>
+          {declinable && <p className="mt-4 text-sm text-muted">{t('pact.cantDoNote')}</p>}
           {editable && (
             <>
               <p className="mb-2 mt-5 text-sm font-semibold">{t('pact.addTask')}</p>
               <div className="flex flex-wrap gap-2">
-                {HELP_ORDER.filter((id) => !helps[id]).map((id) => (
+                {HELP_ORDER.filter((id) => !pactHelps[id]).map((id) => (
                   <Pill key={id} selected={false} onClick={() => edit(id, HELP_DEFAULT[id])}>
                     + {t(`help.${id}.title`)}
                   </Pill>
@@ -274,7 +304,18 @@ export function Agreement() {
               })}
             </ul>
             {!signable && !both && <p className="mt-3 text-sm text-muted">{t('pact.notYet')}</p>}
-            {both && (
+            {open && <p className="mt-3 text-sm text-muted">{t('pact.changeClears')}</p>}
+            {both && !pactApproved && (
+              <div className="mt-4">
+                <Notice tone="amber" live icon={<Clock size={22} aria-hidden className="text-amber-700" />} title={t('pact.review')}>
+                  {t('pact.reviewBody')}
+                </Notice>
+                <Link to="/coordinator" className="mt-3 inline-block text-sm font-semibold underline underline-offset-2">
+                  {t('pact.openDesk')}
+                </Link>
+              </div>
+            )}
+            {pactApproved && (
               <div className="mt-4">
                 <Notice tone="teal" live icon={<PartyPopper size={22} aria-hidden className="text-teal-700" />} title={t('pact.done')}>
                   {t('pact.doneBody')}
