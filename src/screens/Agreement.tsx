@@ -7,7 +7,7 @@ import { Chip, Pill } from '../components/ui/Chip'
 import { Stepper } from '../components/ui/Stepper'
 import { Select } from '../components/ui/Field'
 import { HourMeter } from '../components/domain/HourMeter'
-import { agreedHelps, useStore } from '../store'
+import { agreedHelps, companionOnly, useStore } from '../store'
 import { HELP_DEFAULT, HELP_ORDER } from '../data/seed'
 import { hoursOf, costs } from '../data/pricing'
 import { SLOTS } from '../data/matching'
@@ -26,7 +26,7 @@ export function Agreement() {
   const agreed = agreedHelps({ pactHelps, declined })
   const total = hoursOf(agreed)
   const c = costs(draft.standardRent, draft.homeshareRent, agreed)
-  const companion = tenant.residence === 'limited'
+  const companion = companionOnly(tenant)
   const partner = applicants.find((a) => a.id === match.applicantId)
   const names = { host: t('names.sato'), tenant: viewer === 'tenant' ? tenant.name : (partner?.name ?? tenant.name) }
   const both = pactSigned.host && pactSigned.tenant

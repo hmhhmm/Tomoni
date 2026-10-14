@@ -119,6 +119,10 @@ export type State = Data & Actions
 export const agreedHelps = (s: Pick<Data, 'pactHelps' | 'declined'>): Helps =>
   Object.fromEntries(Object.entries(s.pactHelps).filter(([id]) => !s.declined.includes(id as HelpId))) as Helps
 
+/** Rooms with tasks need a status that allows the activity; students also need work permission. */
+export const companionOnly = (t: Pick<TenantProfile, 'residence' | 'workPermit'>) =>
+  t.residence === 'limited' || (t.residence === 'student' && !t.workPermit)
+
 /** Only the Sato thread (a1) belongs to a live case; other threads are before any match. */
 const caseOf = (threadKey: string) => (threadKey === 'a1' ? 'c1' : null)
 
@@ -378,7 +382,13 @@ export const useStore = create<State>()(
     }),
     {
       name: 'tomoni-v2',
-      version: 2,
+      version: 3,
+      // v3 added tenant.workPermit and tenant.idConsent; existing profiles keep their previous behaviour.
+      migrate: (persisted) => {
+        const p = persisted as Partial<Data>
+        if (p.tenant) p.tenant = { ...p.tenant, workPermit: p.tenant.workPermit ?? true, idConsent: p.tenant.idConsent ?? true }
+        return p as State
+      },
       partialize: (s) => Object.fromEntries(Object.entries(s).filter(([, v]) => typeof v !== 'function')) as never,
     },
   ),

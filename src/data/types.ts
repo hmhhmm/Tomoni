@@ -66,7 +66,7 @@ export interface Message {
   en: string
   origLang: Lang
   when: string
-  flag?: 'care' | 'money'
+  flag?: 'care' | 'money' | 'romance'
   untranslated?: boolean
 }
 
@@ -74,7 +74,7 @@ export interface Flag {
   id: string
   /** null when the flag comes from a conversation before any match. */
   caseId: string | null
-  kind: 'money' | 'care' | 'report' | 'notgood'
+  kind: 'money' | 'care' | 'romance' | 'report' | 'notgood'
   text: string
   when: string
   resolved?: boolean
@@ -126,6 +126,10 @@ export interface TenantProfile {
   skills: HelpId[]
   availability: Slot[]
   otherHours: number
+  /** Students only: holds permission to engage in activity outside their status (資格外活動許可). */
+  workPermit: boolean
+  /** Agreed to the ID check and its data handling. */
+  idConsent: boolean
   verifyStep: number // 0 profile, 1 residence, 2 ID, 3 references, 4 done
   idDone: boolean
   refs: string[]

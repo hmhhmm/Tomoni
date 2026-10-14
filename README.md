@@ -73,7 +73,10 @@ scripts/check-i18n.mjs
 - **Hour cap**: nothing can take weekly help above 10 hours, in the help picker, the agreement, or the help log.
 - **Agreement consent**: the agreement keeps its own copy of the tasks. The housemate can decline any task, any change clears both signatures, and a coordinator approves the signed agreement before the stay starts.
 - **Student limit**: for students, logging is blocked if help plus other work would pass 28 hours a week.
-- **Guardrails**: personal care and medical requests show an inline care-manager card. Money, cards, PIN, inkan and "don't tell anyone" show a warning to both sides and flag the coordinator.
+- **Guardrails** (English and Japanese): personal care and medical requests show an inline care-manager card. Money, lending or borrowing, cards, PINs, passwords, inkan, contracts, wills, large gifts and secrecy ("don't tell anyone") show a warning to both sides and flag the coordinator. Romantic pressure gets a boundary reminder and a flag too. Try "Could you lend me 50,000 yen?" in a chat.
+- **Rent is not payment for help**: the agreement and the listing editor say the rent is fixed in the lease and help is voluntary.
+- **ID consent**: the ID check explains what is kept (result, residence status and expiry) and what is deleted (card and selfie images), and starts only after consent.
+- **Work permission**: students confirm permission to engage in activity outside their status (資格外活動許可). Without it, like visas that limit activity, they see companionship-only rooms.
 - **Check-ins**: two missed in a row raise an alert on the coordinator desk.
 - **Text size** (A / A+ / A++) is in the header for hosts and family.
 - **Japanese and English** cover every string. Messages are shown in the viewer's language with the original beneath and an "AI-assisted" label.

@@ -46,15 +46,15 @@ function CareCard() {
   )
 }
 
-function MoneyCard() {
+function MoneyCard({ kind = 'money' }: { kind?: 'money' | 'romance' }) {
   const { t } = useTranslation()
   const nav = useNavigate()
   return (
     <div role="alert" className="mx-auto w-full max-w-lg rounded-card border border-rose-200 bg-rose-50 p-4">
       <p className="flex items-center gap-2 font-semibold text-rose-700">
-        <ShieldAlert size={20} aria-hidden /> {t('guard.moneyTitle')}
+        <ShieldAlert size={20} aria-hidden /> {t(`guard.${kind}Title`)}
       </p>
-      <p className="mt-1 text-base">{t('guard.money')}</p>
+      <p className="mt-1 text-base">{t(`guard.${kind}`)}</p>
       <p className="mt-2 text-sm text-muted">{t('guard.moneyFlag')}</p>
       <Button className="mt-3" variant="secondary" onClick={() => nav('/safety')}>
         {t('guard.talk')}
@@ -241,6 +241,7 @@ export function Messages() {
                   <ChatBubble msg={m} viewer={side} />
                   {m.flag === 'care' && <CareCard />}
                   {m.flag === 'money' && <MoneyCard />}
+                  {m.flag === 'romance' && <MoneyCard kind="romance" />}
                 </div>
               ))}
               <div ref={endRef} />

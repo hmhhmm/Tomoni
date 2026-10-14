@@ -23,7 +23,7 @@ import { Modal } from '../../components/ui/Modal'
 import { Button } from '../../components/ui/Button'
 import { Pill } from '../../components/ui/Chip'
 import { Select } from '../../components/ui/Field'
-import { useStore } from '../../store'
+import { companionOnly as isCompanionOnly, useStore } from '../../store'
 import { useListings } from '../../lib/listings'
 import { useL, yen, monthLabel } from '../../lib/hooks'
 import { AREAS } from '../../data/seed'
@@ -99,12 +99,12 @@ export function Explore() {
   const { t } = useTranslation()
   const text = useL()
   const lang = useStore((s) => s.lang)
-  const residence = useStore((s) => s.tenant.residence)
+  const tenant = useStore((s) => s.tenant)
   const all = useListings()
   const f = useFilters()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const companionOnly = residence === 'limited'
+  const companionOnly = isCompanionOnly(tenant)
   useEffect(() => {
     const id = setTimeout(() => setLoading(false), 350)
     return () => clearTimeout(id)
