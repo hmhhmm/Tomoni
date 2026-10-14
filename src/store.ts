@@ -50,7 +50,13 @@ interface Data {
   helps: Helps
   applicants: Applicant[]
   match: Match
+  /** The agreement's own copy of the tasks, so later listing edits never change what was signed. */
+  pactHelps: Helps
+  /** Tasks the housemate marked "can't do"; they are left out of the agreement. */
+  declined: HelpId[]
   pactSigned: { host: boolean; tenant: boolean }
+  /** A coordinator reviews the signed agreement before the stay starts. */
+  pactApproved: boolean
   checkins: { week: number; status: CheckinStatus; voice?: boolean }[]
   tasks: TaskEntry[]
   tenant: TenantProfile
@@ -63,6 +69,10 @@ interface Data {
   flags: Flag[]
   cases: CaseRow[]
   caseNotes: Record<string, string>
+  /** Escalation ladder step per case: 0 none, 1-4 = ladder.s1-s4. */
+  caseStep: Record<string, number>
+  /** Coordinator minutes spent per case. */
+  caseMinutes: Record<string, number>
 }
 
 interface Actions {
@@ -84,20 +94,35 @@ interface Actions {
   endTrial: () => void
   resumeTrial: () => void
   goPact: () => void
+  setPactHelp: (id: HelpId, v: { h: number; slot: string } | null) => boolean
+  toggleDeclined: (id: HelpId) => void
   sign: (who: Side) => void
+  approvePact: () => void
   submitCheckin: (status: 'good' | 'notgood', voice: boolean) => void
-  logTask: (help: HelpId, hours: number) => boolean
+  logTask: (help: HelpId, hours: number) => 'ok' | 'cap' | 'student'
   confirmTask: (id: string) => void
   patchTenant: (p: Partial<TenantProfile>) => void
   setFamilyConsent: (v: boolean) => void
   setPulse: (a: Record<string, string>) => void
   addFlag: (f: Omit<Flag, 'id' | 'when'>) => void
+  resolveFlag: (id: string) => void
+  setCaseStep: (id: string, step: number) => void
+  addCaseMinutes: (id: string, minutes: number) => void
   markMissed: (caseId: string) => void
   setCaseNote: (id: string, note: string) => void
   loadScenario: (kind: 'start' | 'living') => void
 }
 
 export type State = Data & Actions
+
+/** Tasks both sides agreed to: the agreement's tasks minus any the housemate declined. */
+export const agreedHelps = (s: Pick<Data, 'pactHelps' | 'declined'>): Helps =>
+  Object.fromEntries(Object.entries(s.pactHelps).filter(([id]) => !s.declined.includes(id as HelpId))) as Helps
+
+/** Only the Sato thread (a1) belongs to a live case; other threads are before any match. */
+const caseOf = (threadKey: string) => (threadKey === 'a1' ? 'c1' : null)
+
+const UNSIGNED = { pactSigned: { host: false, tenant: false }, pactApproved: false }
 
 const nowLabel = () => {
   const d = new Date()
@@ -117,7 +142,10 @@ const base = (): Data => ({
   helps: JSON.parse(JSON.stringify(SATO_HELPS)),
   applicants: APPLICANTS.map((a) => ({ ...a })),
   match: { applicantId: null, stage: 'none', meetSlot: null, trialWeeks: 3, trialStart: null },
+  pactHelps: JSON.parse(JSON.stringify(SATO_HELPS)),
+  declined: [],
   pactSigned: { host: false, tenant: false },
+  pactApproved: false,
   checkins: [],
   tasks: [],
   tenant: {
@@ -136,11 +164,14 @@ const base = (): Data => ({
   flags: [...SEED_FLAGS],
   cases: SEED_CASES.map((c) => ({ ...c, checkins: [...c.checkins] })),
   caseNotes: {},
+  caseStep: { c2: 2, c4: 1 },
+  caseMinutes: Object.fromEntries(SEED_CASES.map((c) => [c.id, c.coordMinutes])),
 })
 
 const living = (): Partial<Data> => ({
   match: { applicantId: 'a1', stage: 'living', meetSlot: 'sat14', trialWeeks: 3, trialStart: daysAgo(17) },
   pactSigned: { host: true, tenant: true },
+  pactApproved: true,
   checkins: livingCheckins(),
   tasks: livingTasks(),
   familyConsent: true,
@@ -238,19 +269,23 @@ export const useStore = create<State>()(
           threads: { ...s.threads, [key]: [...(s.threads[key] ?? []), m] },
           unread: { ...s.unread, [other]: { ...s.unread[other], [key]: (s.unread[other][key] ?? 0) + 1 } },
         })
-        if (flag) get().addFlag({ caseId: 'c1', kind: flag, text: tr.en })
+        if (flag) get().addFlag({ caseId: caseOf(key), kind: flag, text: tr.en })
         // First host reply on a new thread moves the applicant to "chatting".
         if (from === 'host') get().setApplicantStatus(key, 'chatting')
         return m
       },
 
       startMeeting: (applicantId) =>
-        set((s) => ({
-          match:
-            s.match.stage === 'none' || s.match.applicantId !== applicantId
-              ? { applicantId, stage: 'meet', meetSlot: null, trialWeeks: 3, trialStart: null }
-              : s.match,
-        })),
+        set((s) => {
+          if (s.match.stage !== 'none' && s.match.applicantId === applicantId) return {}
+          // A new match starts a fresh agreement from the listing's current tasks.
+          return {
+            match: { applicantId, stage: 'meet', meetSlot: null, trialWeeks: 3, trialStart: null },
+            pactHelps: JSON.parse(JSON.stringify(s.helps)),
+            declined: [],
+            ...UNSIGNED,
+          }
+        }),
       bookMeet: (meetSlot) => set((s) => ({ match: { ...s.match, meetSlot } })),
       clearMeet: () => set((s) => ({ match: { ...s.match, meetSlot: null } })),
       startTrial: (trialWeeks) => set((s) => ({ match: { ...s.match, stage: 'trial', trialWeeks, trialStart: daysAgo(0) } })),
@@ -258,16 +293,37 @@ export const useStore = create<State>()(
       resumeTrial: () => set((s) => ({ match: { ...s.match, stage: 'trial' } })),
       goPact: () => set((s) => ({ match: { ...s.match, stage: 'pact' } })),
 
-      sign: (who) =>
+      // Any change to the tasks clears both signatures, so nobody is held to tasks they did not see.
+      setPactHelp: (hid, v) => {
+        const s = get()
+        if (s.pactApproved) return false
+        const next: Helps = { ...s.pactHelps }
+        if (!v || v.h <= 0) delete next[hid]
+        else next[hid] = { h: v.h, slot: v.slot as never }
+        if (hoursOf(agreedHelps({ pactHelps: next, declined: s.declined })) > RULES.weeklyHourCap) return false
+        set({ pactHelps: next, declined: s.declined.filter((d) => next[d]), ...UNSIGNED })
+        return true
+      },
+      toggleDeclined: (hid) =>
         set((s) => {
-          const pactSigned = { ...s.pactSigned, [who]: true }
-          const both = pactSigned.host && pactSigned.tenant
-          return {
-            pactSigned,
-            match: both ? { ...s.match, stage: 'living' } : s.match,
-            checkins: both && s.checkins.length === 0 ? [{ week: 1, status: 'pending' }] : s.checkins,
-          }
+          if (s.pactApproved) return {}
+          const declined = s.declined.includes(hid) ? s.declined.filter((d) => d !== hid) : [...s.declined, hid]
+          if (hoursOf(agreedHelps({ pactHelps: s.pactHelps, declined })) > RULES.weeklyHourCap) return {}
+          return { declined, ...UNSIGNED }
         }),
+
+      sign: (who) => set((s) => (s.match.stage === 'pact' ? { pactSigned: { ...s.pactSigned, [who]: true } } : {})),
+
+      approvePact: () =>
+        set((s) =>
+          s.match.stage === 'pact' && s.pactSigned.host && s.pactSigned.tenant
+            ? {
+                pactApproved: true,
+                match: { ...s.match, stage: 'living' },
+                checkins: s.checkins.length === 0 ? [{ week: 1, status: 'pending' }] : s.checkins,
+              }
+            : {},
+        ),
 
       submitCheckin: (status, voice) => {
         set((s) => {
@@ -285,15 +341,20 @@ export const useStore = create<State>()(
         weekStart.setHours(0, 0, 0, 0)
         weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7))
         const inWeek = s.tasks.filter((t) => new Date(t.date) >= weekStart).reduce((a, t) => a + t.hours, 0)
-        if (inWeek + hours > RULES.weeklyHourCap) return false
+        if (inWeek + hours > RULES.weeklyHourCap) return 'cap'
+        // Help counts toward a student's 28h/week limit, so block rather than only warn.
+        if (s.tenant.residence === 'student' && s.tenant.otherHours + inWeek + hours > RULES.studentWeeklyLimit) return 'student'
         set({ tasks: [...s.tasks, { id: id('t'), help, hours, date: daysAgo(0), status: 'pending' }] })
-        return true
+        return 'ok'
       },
       confirmTask: (tid) => set((s) => ({ tasks: s.tasks.map((t) => (t.id === tid ? { ...t, status: 'confirmed' } : t)) })),
       patchTenant: (p) => set((s) => ({ tenant: { ...s.tenant, ...p } })),
       setFamilyConsent: (familyConsent) => set({ familyConsent }),
       setPulse: (pulse) => set({ pulse }),
       addFlag: (f) => set((s) => ({ flags: [{ ...f, id: id('f'), when: nowLabel() }, ...s.flags] })),
+      resolveFlag: (fid) => set((s) => ({ flags: s.flags.map((f) => (f.id === fid ? { ...f, resolved: true } : f)) })),
+      setCaseStep: (cid, step) => set((s) => ({ caseStep: { ...s.caseStep, [cid]: Math.max(0, Math.min(4, step)) } })),
+      addCaseMinutes: (cid, m) => set((s) => ({ caseMinutes: { ...s.caseMinutes, [cid]: (s.caseMinutes[cid] ?? 0) + m } })),
 
       markMissed: (caseId) => {
         if (caseId === 'c1') {

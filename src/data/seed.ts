@@ -402,6 +402,7 @@ export const SEED_CASES: CaseRow[] = [
     avgHours: 0,
     checkins: [],
     notes: '',
+    coordMinutes: 45,
   },
   {
     id: 'c2',
@@ -413,6 +414,7 @@ export const SEED_CASES: CaseRow[] = [
     avgHours: 6,
     checkins: ['good', 'good', 'good', 'good', 'missed', 'missed'],
     notes: "Called twice, no answer. Neighbour contact: ask Tanaka-san's daughter (consented).",
+    coordMinutes: 780,
   },
   {
     id: 'c3',
@@ -424,6 +426,7 @@ export const SEED_CASES: CaseRow[] = [
     avgHours: 7,
     checkins: ['good', 'good'],
     notes: '',
+    coordMinutes: 540,
   },
   {
     id: 'c4',
@@ -435,6 +438,7 @@ export const SEED_CASES: CaseRow[] = [
     avgHours: 2,
     checkins: ['good', 'good', 'notgood', 'good', 'good', 'good', 'good', 'missed'],
     notes: 'Companionship only. One missed week, follow up gently.',
+    coordMinutes: 600,
   },
   {
     id: 'c5',
@@ -446,6 +450,7 @@ export const SEED_CASES: CaseRow[] = [
     avgHours: 4,
     checkins: Array(12).fill('good') as CheckinStatus[],
     notes: '',
+    coordMinutes: 660,
   },
 ]
 

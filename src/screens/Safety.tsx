@@ -14,6 +14,7 @@ export function Safety() {
   const nav = useNavigate()
   const [params] = useSearchParams()
   const addFlag = useStore((s) => s.addFlag)
+  const match = useStore((s) => s.match)
   const say = useUI((s) => s.say)
   const [calling, setCalling] = useState(false)
   const [coord, setCoord] = useState(false)
@@ -130,7 +131,11 @@ export function Safety() {
                 variant="dark"
                 disabled={!cat}
                 onClick={() => {
-                  addFlag({ caseId: 'c1', kind: 'report', text: `${t(`safety.cat.${cat}`)}${detail ? `: ${detail}` : ''}` })
+                  addFlag({
+                    caseId: match.stage === 'none' ? null : 'c1',
+                    kind: 'report',
+                    text: `${t(`safety.cat.${cat}`)}${detail ? `: ${detail}` : ''}`,
+                  })
                   setSent(true)
                 }}
               >
