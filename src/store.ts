@@ -4,6 +4,7 @@ import type {
   Application,
   Applicant,
   CaseRow,
+  CheckinEntry,
   CheckinStatus,
   CoordMessage,
   ReferralKind,
@@ -64,7 +65,9 @@ interface Data {
   pactSigned: { host: boolean; tenant: boolean }
   /** A coordinator reviews the signed agreement before the stay starts. */
   pactApproved: boolean
-  checkins: { week: number; status: CheckinStatus; voice?: boolean; photo?: boolean }[]
+  checkins: CheckinEntry[]
+  /** Cases where the coordinator keeps check-in media as evidence (no 30-day deletion). */
+  keepMedia: Record<string, boolean>
   tasks: TaskEntry[]
   tenant: TenantProfile
   saved: string[]
@@ -116,7 +119,10 @@ interface Actions {
   toggleDeclined: (id: HelpId) => void
   sign: (who: Side) => void
   approvePact: () => void
-  submitCheckin: (status: 'good' | 'notgood', voice: boolean, photo?: boolean) => void
+  submitCheckin: (status: 'good' | 'notgood', media?: { voiceSecs?: number; photoData?: string; shareFamily?: boolean }) => void
+  setKeepMedia: (caseId: string, keep: boolean) => void
+  /** Deletes check-in photos and voice notes older than RULES.mediaDays, unless kept as evidence. */
+  pruneMedia: () => void
   logTask: (help: HelpId, hours: number) => 'ok' | 'cap' | 'student' | 'paused'
   confirmTask: (id: string) => void
   patchTenant: (p: Partial<TenantProfile>) => void
@@ -203,6 +209,7 @@ const base = (): Data => ({
   // Established matches have finished their checks; the new Sato match has not.
   safeguards: Object.fromEntries(SEED_CASES.filter((c) => c.id !== 'c1').map((c) => [c.id, { metAlone: true, refs: true, homeCheck: true }])),
   paused: {},
+  keepMedia: {},
 })
 
 const living = (): Partial<Data> => ({
@@ -397,11 +404,20 @@ export const useStore = create<State>()(
             : {},
         ),
 
-      submitCheckin: (status, voice, photo = false) => {
+      submitCheckin: (status, media = {}) => {
         set((s) => {
           const list = s.checkins.map((c) => ({ ...c }))
           const i = list.findIndex((c) => c.status === 'pending')
-          if (i >= 0) list[i] = { ...list[i], status, voice, photo }
+          const hasMedia = !!media.voiceSecs || !!media.photoData
+          if (i >= 0)
+            list[i] = {
+              ...list[i],
+              status,
+              voiceSecs: media.voiceSecs,
+              photoData: media.photoData,
+              shareFamily: hasMedia && !!media.shareFamily && s.familyConsent,
+              at: new Date().toISOString(),
+            }
           return { checkins: list }
         })
         if (status === 'notgood') get().addFlag({ caseId: 'c1', kind: 'notgood', text: 'Weekly check-in: something is not right' })
@@ -453,6 +469,19 @@ export const useStore = create<State>()(
       toggleSafeguard: (cid, key) =>
         set((s) => ({ safeguards: { ...s.safeguards, [cid]: { ...s.safeguards[cid], [key]: !s.safeguards[cid]?.[key] } } })),
       setPaused: (cid, p) => set((s) => ({ paused: { ...s.paused, [cid]: p } })),
+      setKeepMedia: (cid, keep) => set((s) => ({ keepMedia: { ...s.keepMedia, [cid]: keep } })),
+      pruneMedia: () =>
+        set((s) => {
+          if (s.keepMedia.c1) return {}
+          const cutoff = Date.now() - RULES.mediaDays * 86400000
+          let changed = false
+          const checkins = s.checkins.map((c) => {
+            if (!c.at || new Date(c.at).getTime() > cutoff || (!c.photoData && !c.voiceSecs)) return c
+            changed = true
+            return { ...c, photoData: undefined, voiceSecs: undefined, mediaDeleted: true }
+          })
+          return changed ? { checkins } : {}
+        }),
 
       markMissed: (caseId) => {
         if (caseId === 'c1') {

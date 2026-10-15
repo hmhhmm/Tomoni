@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, CalendarDays, Check, EyeOff, Hourglass, Lock, NotebookText, Phone, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { AlertTriangle, CalendarDays, Check, EyeOff, Hourglass, Lock, Mic, NotebookText, Phone, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { Page, Notice, FictionalTag } from '../../components/domain/Bits'
 import { Avatar } from '../../components/ui/Avatar'
 import { Button } from '../../components/ui/Button'
@@ -9,10 +9,12 @@ import { HourMeter } from '../../components/domain/HourMeter'
 import { Chip } from '../../components/ui/Chip'
 import { Modal } from '../../components/ui/Modal'
 import { Textarea } from '../../components/ui/Field'
-import { useStore, weekHours } from '../../store'
+import { agreedHelps, useStore, weekHours } from '../../store'
+import { HELP_ORDER } from '../../data/seed'
 import { MEET_SLOTS } from '../../data/journey'
 import { formatDayTime } from '../../lib/format'
 import { useUI } from '../../ui'
+import { SATO_HUE } from '../../tokens'
 
 export function FamilyInvite() {
   const { t } = useTranslation()
@@ -23,7 +25,7 @@ export function FamilyInvite() {
       <h1 className="text-[1.75rem] font-semibold">{t('invite.title')}</h1>
       <p className="mt-1 text-base text-muted">{t('invite.lede', { host: t('names.sato') })}</p>
       <div className="mt-6 flex items-center gap-3 rounded-card border border-line p-4">
-        <Avatar hue={262} size={56} label={t('names.sato')} />
+        <Avatar hue={SATO_HUE} size={56} label={t('names.sato')} />
         <div>
           <p className="text-lg font-semibold">{t('names.sato')}</p>
           <FictionalTag />
@@ -56,7 +58,7 @@ export function FamilyInvite() {
       <p className="mt-5 text-base text-muted">{t('invite.revoke')}</p>
       <div className="mt-6 flex flex-wrap gap-3">
         <Button
-          variant="dark"
+          variant="primary"
           size="lg"
           onClick={() => {
             setFamilyConsent(true)
@@ -85,7 +87,7 @@ export function FamilyDashboard() {
   const nav = useNavigate()
   const say = useUI((s) => s.say)
   const lang = useStore((s) => s.lang)
-  const { familyConsent, setFamilyConsent, checkins, tasks, match, applicants, tenant } = useStore()
+  const { familyConsent, setFamilyConsent, checkins, tasks, match, applicants, tenant, pactHelps, declined } = useStore()
   const addFlag = useStore((s) => s.addFlag)
   // "Contact the coordinator" lands on the coordinator desk for the Sato case.
   const [contactOpen, setContactOpen] = useState(false)
@@ -107,8 +109,14 @@ export function FamilyDashboard() {
     missed: { Icon: AlertTriangle, tone: 'border-rose-200 bg-rose-50', ic: 'text-rose-700', title: t('family.missed'), body: t('family.missedBody') },
     pending: { Icon: Hourglass, tone: 'border-line bg-surface', ic: 'text-muted', title: t('family.pending'), body: t('family.pendingBody') },
   }[st]
-  const slot = MEET_SLOTS.find((s) => s.id === match.meetSlot)
+  // The meet-up is only "coming up" before it happens (the trial starts after it).
+  const slot = match.stage === 'meet' ? MEET_SLOTS.find((s) => s.id === match.meetSlot) : undefined
   const fmt = (d: Date) => formatDayTime(d, lang)
+  // Regular help from the agreement, with its usual time (companionship-only stays have none).
+  const agreed = agreedHelps({ pactHelps, declined })
+  // Only check-ins Mrs Sato chose to share, newest first (photo / voice note still within the retention period).
+  const shared = checkins.filter((c) => c.shareFamily && (c.photoData || c.voiceSecs)).reverse()
+  const regular = hasStay ? HELP_ORDER.filter((h) => agreed[h]).map((h) => ({ id: h, slot: agreed[h]!.slot })) : []
 
   // Weekly summary: built only from check-ins, confirmed hours and plans. Never from messages.
   const host = t('names.sato')
@@ -122,13 +130,13 @@ export function FamilyDashboard() {
     answered.length > 0 ? t('family.sum.streak', { good: goodCount, total: answered.length }) : null,
     confirmedH > 0 ? t('family.sum.hours', { name: housemate, h: confirmedH, host }) : t('family.sum.noHours'),
     waitingH > 0 ? t('family.sum.waiting', { h: waitingH, host }) : null,
-    t('family.sum.next', { what: t('family.dinner'), when: t('family.sunday') }),
+    regular[0] ? t('family.sum.next', { what: t(`help.${regular[0].id}.title`), when: t(`slot.${regular[0].slot}`) }) : null,
   ].filter(Boolean) as string[]
 
   return (
     <Page className="py-8">
       <div className="flex flex-wrap items-center gap-3">
-        <Avatar hue={262} size={56} label={t('names.sato')} />
+        <Avatar hue={SATO_HUE} size={56} label={t('names.sato')} />
         <div>
           <h1 className="text-[1.75rem] font-semibold leading-tight">{t('family.title', { name: t('names.sato') })}</h1>
           <div className="mt-1 flex items-center gap-2">
@@ -160,23 +168,52 @@ export function FamilyDashboard() {
               {t('family.upcoming')}
             </h2>
             <ul className="mt-3 space-y-2 text-base">
-              {hasStay && (
-                <li className="flex items-center justify-between gap-2 rounded-lg bg-surface px-3 py-2">
-                  <span>{t('family.dinner')}</span>
-                  <Chip>{t('family.sunday')}</Chip>
+              {regular.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-surface px-3 py-2">
+                  <span>{t(`help.${r.id}.title`)}</span>
+                  <Chip>{t(`slot.${r.slot}`)}</Chip>
                 </li>
-              )}
+              ))}
               {slot && (
                 <li className="flex items-center justify-between gap-2 rounded-lg bg-surface px-3 py-2">
                   <span>{t('family.meetup')}</span>
                   <Chip>{fmt(slot.date())}</Chip>
                 </li>
               )}
-              {!hasStay && !slot && <li className="text-muted">{t('family.noUpcoming')}</li>}
+              {regular.length === 0 && !slot && <li className="text-muted">{t('family.noUpcoming')}</li>}
             </ul>
           </section>
         </div>
       </div>
+
+      {shared.length > 0 && (
+        <section aria-labelledby="shared-title" className="mt-6 rounded-card border border-line p-6">
+          <h2 id="shared-title" className="text-lg font-semibold">
+            {t('family.shared.title', { host: t('names.sato') })}
+          </h2>
+          <ul className="mt-3 grid gap-4 sm:grid-cols-2">
+            {shared.map((c) => (
+              <li key={c.week} className="rounded-card bg-surface p-4">
+                <p className="text-sm font-semibold text-muted">{t('family.week', { n: c.week })}</p>
+                {c.photoData && (
+                  <img
+                    src={c.photoData}
+                    alt={t('family.shared.photoAlt', { n: c.week })}
+                    className="mt-2 max-h-56 w-full rounded-card object-cover"
+                  />
+                )}
+                {!!c.voiceSecs && (
+                  <p className="mt-2 flex items-center gap-2 text-base">
+                    <Mic size={18} aria-hidden className="text-muted" />
+                    {t('family.shared.voice', { time: `0:${String(c.voiceSecs).padStart(2, '0')}` })}
+                    <span className="text-sm text-muted">{t('family.shared.noAudio')}</span>
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {hasStay && (
         <section aria-labelledby="sum-title" className="mt-6 rounded-card border border-line p-6">

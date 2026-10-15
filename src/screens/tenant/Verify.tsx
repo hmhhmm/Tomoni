@@ -134,7 +134,7 @@ export function Verify() {
                 type="checkbox"
                 checked={tenant.workPermit}
                 onChange={(e) => patchTenant({ workPermit: e.target.checked })}
-                className="mt-1 h-5 w-5 accent-brand-600"
+                className="mt-1 h-5 w-5 accent-ink"
               />
               <span>
                 <span className="block font-semibold">{t('onb.permit')}</span>
@@ -164,7 +164,7 @@ export function Verify() {
                     type="checkbox"
                     checked={tenant.idConsent}
                     onChange={(e) => patchTenant({ idConsent: e.target.checked })}
-                    className="mt-1 h-5 w-5 accent-brand-600"
+                    className="mt-1 h-5 w-5 accent-ink"
                   />
                   <span>{t('onb.consent')}</span>
                 </label>

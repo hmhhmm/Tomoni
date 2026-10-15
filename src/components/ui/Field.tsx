@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from 'react'
 
 const base =
-  'w-full rounded-input border border-line bg-white px-4 text-base outline-none transition-colors placeholder:text-muted hover:border-ink focus:border-ink focus:ring-1 focus:ring-ink'
+  'w-full rounded-input border border-field bg-white px-4 text-base outline-none transition-colors placeholder:text-muted hover:border-ink focus:border-ink focus:ring-1 focus:ring-ink'
 
 export function Field({ label, hint, children, htmlFor }: { label: string; hint?: string; children: ReactNode; htmlFor?: string }) {
   return (

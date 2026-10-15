@@ -37,12 +37,15 @@ export function Pill({
   children,
   className = '',
   icon,
+  look = 'solid',
 }: {
   selected: boolean
   onClick: () => void
   children: ReactNode
   className?: string
   icon?: ReactNode
+  /** `outline`: the selected pill gets a thick dark border and stays white (used for list filters). */
+  look?: 'solid' | 'outline'
 }) {
   return (
     <button
@@ -50,7 +53,11 @@ export function Pill({
       aria-pressed={selected}
       onClick={onClick}
       className={`inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-base font-medium transition-colors duration-150 ${
-        selected ? 'border-ink bg-ink text-white' : 'border-line bg-white text-ink hover:border-ink'
+        selected
+          ? look === 'outline'
+            ? 'border-ink bg-white text-ink font-semibold ring-1 ring-ink'
+            : 'border-ink bg-ink text-white'
+          : 'border-field bg-white text-ink hover:border-ink'
       } ${className}`}
     >
       {icon}

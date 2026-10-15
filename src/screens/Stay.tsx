@@ -16,6 +16,7 @@ import { formatDayTime } from '../lib/format'
 import { useL, yen } from '../lib/hooks'
 import { StayTabs } from '../components/domain/StayTabs'
 import { usePath } from '../lib/paths'
+import { SATO_HUE } from '../tokens'
 
 export function Stay() {
   const { t } = useTranslation()
@@ -61,7 +62,7 @@ export function Stay() {
   const partner =
     side === 'host'
       ? { name: a.name, hue: a.hue, verified: a.verified, sub: text(a.occupation) }
-      : { name: t('names.sato'), hue: 262, verified: true, sub: text({ en: 'Nerima', ja: '練馬区' }) }
+      : { name: t('names.sato'), hue: SATO_HUE, verified: true, sub: text({ en: 'Nerima', ja: '練馬区' }) }
   const slot = MEET_SLOTS.find((s) => s.id === match.meetSlot)
 
   return (
@@ -89,14 +90,14 @@ export function Stay() {
                           aria-checked={picked === s.id}
                           onClick={() => (side === 'host' ? setPicked(s.id) : undefined)}
                           disabled={side !== 'host'}
-                          className={`flex w-full items-center gap-4 rounded-card border-2 p-4 text-left transition ${picked === s.id ? 'border-brand-600 bg-brand-50' : 'border-line hover:border-ink'}`}
+                          className={`flex w-full items-center gap-4 rounded-card border-2 p-4 text-left transition ${picked === s.id ? 'border-ink bg-surface' : 'border-line hover:border-ink'}`}
                         >
-                          <CalendarCheck size={22} aria-hidden className={picked === s.id ? 'text-brand-700' : ''} />
+                          <CalendarCheck size={22} aria-hidden />
                           <span className="flex-1">
                             <span className="block text-base font-semibold">{fmt(s.date())}</span>
                             <span className="block text-sm text-muted">{t(`stay.place.${s.place}`)}</span>
                           </span>
-                          {picked === s.id && <Check size={20} aria-hidden className="text-brand-700" />}
+                          {picked === s.id && <Check size={20} aria-hidden />}
                         </button>
                       </li>
                     ))}
@@ -157,12 +158,13 @@ export function Stay() {
                           ))}
                         </div>
                         <div className="mt-5 flex flex-wrap items-center gap-3">
-                          <Button variant="dark" size="lg" onClick={() => startTrial(weeks)}>
+                          <Button variant="primary" size="lg" disabled={!match.meetConfirmed} onClick={() => startTrial(weeks)}>
                             {t('stay.start')}
                           </Button>
                           <Button variant="ghost" onClick={clearMeet}>
                             {t('stay.change')}
                           </Button>
+                          {!match.meetConfirmed && <p className="w-full text-sm text-muted">{t('stay.startNeedsConfirm', { name: a.name })}</p>}
                         </div>
                       </>
                     ) : (
@@ -191,7 +193,7 @@ export function Stay() {
                 </div>
                 <div className="mt-5">
                   <Button
-                    variant="dark"
+                    variant="primary"
                     size="lg"
                     icon={<FileSignature size={18} aria-hidden />}
                     onClick={() => {
@@ -216,7 +218,7 @@ export function Stay() {
             <section className="rounded-card border border-line p-6">
               <h2 className="text-xl font-semibold">{t('stay.pactTitle')}</h2>
               <p className="mt-1 text-base text-muted">{t('stay.pactBody', { n: Number(pactSigned.host) + Number(pactSigned.tenant) })}</p>
-              <LinkButton to={p('/agreement')} variant="dark" size="lg" className="mt-5" icon={<ArrowRight size={18} aria-hidden />}>
+              <LinkButton to={p('/agreement')} variant="primary" size="lg" className="mt-5" icon={<ArrowRight size={18} aria-hidden />}>
                 {t('stay.openPact')}
               </LinkButton>
             </section>
@@ -317,16 +319,16 @@ export function Stay() {
               <VerifiedBadge verified={partner.verified} />
               <FictionalTag />
             </div>
-            <dl className="mt-5 space-y-3 border-t border-soft pt-5 text-base">
-              <div className="flex items-center gap-3">
+            <ul className="mt-5 space-y-3 border-t border-soft pt-5 text-base">
+              <li className="flex items-center gap-3">
                 <MapPin size={18} aria-hidden className="text-muted" />
-                <dd>{t('stay.room', { n: draft.sizeJo })}</dd>
-              </div>
-              <div className="flex items-center gap-3">
+                {t('stay.room', { n: draft.sizeJo })}
+              </li>
+              <li className="flex items-center gap-3">
                 <Users size={18} aria-hidden className="text-muted" />
-                <dd>{t('stay.rentLine', { rent: yen(draft.homeshareRent), total: yen(c.monthlyAllIn) })}</dd>
-              </div>
-            </dl>
+                {t('stay.rentLine', { rent: yen(draft.homeshareRent), total: yen(c.monthlyAllIn) })}
+              </li>
+            </ul>
             <div className="mt-5 border-t border-soft pt-5">
               <HourMeter value={c.weeklyHours} compact label={t('meter.help')} />
             </div>

@@ -5,11 +5,13 @@ import {
   AlertTriangle,
   ArrowLeft,
   Check,
+  ChevronDown,
   FileSignature,
   Flag,
   HeartPulse,
   LockKeyhole,
   MessageSquareWarning,
+  Mic,
   PhoneCall,
   Timer,
   Users,
@@ -29,12 +31,12 @@ import type { CaseRow, CheckinStatus, Flag as FlagT } from '../data/types'
 import { SEED_PULSES } from '../data/seed'
 import { hoursLeft, isSafety } from '../lib/sla'
 
-const TONE = { healthy: 'teal', trial: 'brand', review: 'brand', attention: 'amber', alert: 'rose', paused: 'amber' } as const
+const TONE = { healthy: 'teal', trial: 'neutral', review: 'neutral', attention: 'amber', alert: 'rose', paused: 'amber' } as const
 /** Detail banner colour follows the case status. */
 const BANNER = {
   healthy: 'border-teal-100 bg-teal-50',
-  trial: 'border-brand-100 bg-brand-50',
-  review: 'border-brand-100 bg-brand-50',
+  trial: 'border-line bg-surface',
+  review: 'border-line bg-surface',
   attention: 'border-amber-200 bg-amber-50',
   alert: 'border-rose-200 bg-rose-50',
   paused: 'border-amber-200 bg-amber-50',
@@ -67,6 +69,8 @@ export function Coordinator() {
     paused,
     safeguards,
     coordUnread,
+    keepMedia,
+    setKeepMedia,
   } = useStore()
   const [sel, setSel] = useState('c1')
   useEffect(() => {
@@ -156,6 +160,7 @@ export function Coordinator() {
   ]
 
   const step = caseStep[sel] ?? 0
+  const media = checkins.filter((c) => c.photoData || c.voiceSecs || c.mediaDeleted)
   // Anonymous pulse: pooled across homes, never tied to a case or a name.
   const pulses = [...SEED_PULSES, ...(pulse ? [pulse] : [])]
   const caseFlags = open.filter((f) => f.caseId === sel)
@@ -193,8 +198,53 @@ export function Coordinator() {
           <p className="text-base text-muted">{t('coord.lede')}</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr] [&>*]:min-w-0">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] [&>*]:min-w-0">
           <div className="min-w-0 space-y-6">
+            <section aria-label={t('coord.alerts')} className="rounded-card border border-line bg-white p-5">
+              <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+                {t('coord.alerts')} <Chip tone={alerts.length ? 'rose' : 'teal'}>{alerts.length}</Chip>
+              </h2>
+              {alerts.length === 0 ? (
+                <p className="text-base text-muted">{t('coord.noAlerts')}</p>
+              ) : (
+                <ul className="space-y-2" aria-live="polite">
+                  {alerts.map((a) => (
+                    <li
+                      key={a.id}
+                      className={`rounded-card border p-3 ${a.tone === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => a.caseId && open_(a.caseId)}
+                        disabled={!a.caseId}
+                        className="flex w-full gap-3 text-left disabled:cursor-default"
+                      >
+                        <a.icon size={20} aria-hidden className={`mt-0.5 shrink-0 ${a.tone === 'rose' ? 'text-rose-700' : 'text-amber-700'}`} />
+                        <span>
+                          <span className="block font-semibold">
+                            {a.title} {a.when && <span className="font-normal text-muted">· {a.when}</span>}
+                            {a.flag && <Due f={a.flag} />}
+                          </span>
+                          <span className="block text-base">{a.body}</span>
+                        </span>
+                      </button>
+                      {a.flagId && (
+                        <Button
+                          className="ml-8 mt-2"
+                          variant="secondary"
+                          size="sm"
+                          icon={<Check size={16} aria-hidden />}
+                          onClick={() => resolveFlag(a.flagId!)}
+                        >
+                          {t('coord.resolve')}
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
             <section aria-label={t('coord.cases')} className="rounded-card border border-line bg-white p-5">
               <h2 className="mb-3 text-lg font-semibold">{t('coord.cases')}</h2>
               <div className="overflow-x-auto">
@@ -212,7 +262,7 @@ export function Coordinator() {
                       <tr
                         key={r.id}
                         onClick={() => open_(r.id)}
-                        className={`cursor-pointer border-b border-soft transition-colors last:border-0 hover:bg-surface ${sel === r.id ? 'bg-surface shadow-[inset_3px_0_0_#222]' : ''}`}
+                        className={`cursor-pointer border-b border-soft transition-colors last:border-0 hover:bg-surface ${sel === r.id ? 'bg-surface font-medium' : ''}`}
                       >
                         <td className="py-3 pr-3">
                           <button
@@ -271,7 +321,7 @@ export function Coordinator() {
                       <p className="text-base font-medium">{t(`pulse.${q}`)}</p>
                       <div className="mt-1 flex h-3 overflow-hidden rounded-full bg-soft" aria-hidden>
                         <span className="bg-teal-500" style={{ width: `${(n('great') / pulses.length) * 100}%` }} />
-                        <span className="bg-brand-200" style={{ width: `${(n('fine') / pulses.length) * 100}%` }} />
+                        <span className="bg-line" style={{ width: `${(n('fine') / pulses.length) * 100}%` }} />
                         <span className="bg-amber-700" style={{ width: `${(n('notgreat') / pulses.length) * 100}%` }} />
                       </div>
                       <p className="mt-1 text-sm text-muted">
@@ -347,6 +397,45 @@ export function Coordinator() {
                 ))}
               </dl>
 
+              {sel === 'c1' && (media.length > 0 || match.stage === 'living') && (
+                <section aria-labelledby="media-title" className="mt-4 rounded-card border border-line p-4">
+                  <h3 id="media-title" className="text-sm font-semibold">
+                    {t('coord.media.title')}
+                  </h3>
+                  {media.length === 0 && <p className="mt-1 text-sm text-muted">{t('coord.media.none')}</p>}
+                  <ul className="mt-2 space-y-2">
+                    {media.map((c) => (
+                      <li key={c.week} className="flex flex-wrap items-center gap-3 text-base">
+                        <span className="font-medium">{t('checkin.week', { n: c.week })}</span>
+                        {c.photoData && (
+                          <img src={c.photoData} alt={t('coord.media.photoAlt', { n: c.week })} className="h-12 w-12 rounded-btn object-cover" />
+                        )}
+                        {!!c.voiceSecs && (
+                          <span className="inline-flex items-center gap-1 text-sm">
+                            <Mic size={14} aria-hidden /> 0:{String(c.voiceSecs).padStart(2, '0')}
+                          </span>
+                        )}
+                        {c.mediaDeleted && <span className="text-sm text-muted">{t('coord.media.deleted', { days: RULES.mediaDays })}</span>}
+                        {!c.mediaDeleted && (
+                          <Chip tone={c.shareFamily ? 'teal' : 'neutral'}>
+                            {c.shareFamily ? t('coord.media.shared') : t('coord.media.coordOnly')}
+                          </Chip>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={!!keepMedia.c1}
+                      onChange={(e) => setKeepMedia('c1', e.target.checked)}
+                      className="mt-0.5 h-5 w-5 accent-ink"
+                    />
+                    <span>{t('coord.media.keep', { days: RULES.mediaDays })}</span>
+                  </label>
+                </section>
+              )}
+
               {sel === 'c1' && awaitingApproval && (
                 <div className="mt-3 rounded-card border border-amber-200 bg-amber-50 p-4">
                   <p className="font-semibold">{t('coord.approveTitle')}</p>
@@ -364,7 +453,7 @@ export function Coordinator() {
                   {!safeguardsDone(safeguards.c1) && <p className="mt-2 text-sm font-semibold text-amber-700">{t('coord.sg.needed')}</p>}
                   <Button
                     className="mt-3"
-                    variant="dark"
+                    variant="primary"
                     disabled={!safeguardsDone(safeguards.c1)}
                     icon={<Check size={18} aria-hidden />}
                     onClick={approvePact}
@@ -374,104 +463,64 @@ export function Coordinator() {
                 </div>
               )}
 
-              <SafeguardPanel caseId={sel} />
-              <ReferralPanel caseId={sel} />
+              <Group key={`sg-${sel}`} title={t('coord.grp.safety')} open={(sel === 'c1' && awaitingApproval) || !!paused[sel]}>
+                <SafeguardPanel caseId={sel} />
+                <ReferralPanel caseId={sel} />
+              </Group>
               {sel === 'c1' && (
-                <section aria-labelledby="coord-chat" className="mt-5 overflow-hidden rounded-card border border-line">
-                  <h3 id="coord-chat" className="flex items-center gap-2 border-b border-soft px-4 py-2 text-sm font-semibold">
-                    {t('coordChat.deskTitle', { name: current.tenant })}
-                  </h3>
-                  <div className="flex h-80 flex-col">
+                <Group
+                  key={`chat-${sel}`}
+                  title={t('coordChat.deskTitle', { name: current.tenant })}
+                  badge={coordUnread.coord}
+                  open={coordUnread.coord > 0 || caseFlags.some((f) => f.kind === 'private')}
+                >
+                  <div className="-mx-4 -mb-4 flex h-80 flex-col border-t border-soft">
                     <CoordChat side="coord" />
                   </div>
-                </section>
+                </Group>
               )}
-
-              <div className="mt-4">
-                <p className="text-sm font-semibold">{t('coord.ladder')}</p>
-                <ol className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-3" aria-label={t('coord.ladder')}>
-                  {LADDER.map((n) => (
-                    <li
-                      key={n}
-                      aria-current={step === n ? 'step' : undefined}
-                      className={`rounded-btn px-2 py-1.5 text-center text-sm ${step >= n ? 'bg-amber-50 font-semibold text-amber-700' : 'bg-surface text-muted'}`}
-                    >
-                      {t(`ladder.s${n}`)}
-                    </li>
-                  ))}
-                </ol>
-                <p className="mt-2 text-sm text-muted">{step === 0 ? t('coord.ladderNone') : t(`ladder.d${step}`)}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <Button variant="secondary" size="sm" disabled={step >= LADDER.length} onClick={() => setCaseStep(sel, step + 1)}>
-                    {step === 0 ? t('coord.ladderStart') : t('coord.ladderNext')}
-                  </Button>
-                  {step > 0 && (
-                    <Button variant="ghost" size="sm" onClick={() => setCaseStep(sel, 0)}>
-                      {t('coord.ladderClear')}
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
-                <Button variant="secondary" size="sm" icon={<Timer size={16} aria-hidden />} onClick={() => addCaseMinutes(sel, 15)}>
-                  {t('coord.addTime')}
-                </Button>
-              </div>
-
-              <label htmlFor="notes" className="mb-1.5 mt-4 block text-sm font-semibold">
-                {t('coord.notes')}
-              </label>
-              <Textarea id="notes" rows={4} value={note} onChange={(e) => setCaseNote(sel, e.target.value)} placeholder={t('coord.notesPh')} />
-              <p className="mt-1 text-sm text-muted">{t('coord.saved')}</p>
-              <Button className="mt-3" variant="secondary" onClick={() => markMissed(sel)}>
-                {t('coord.markMissed')}
-              </Button>
-            </section>
-
-            <section aria-label={t('coord.alerts')} className="rounded-card border border-line bg-white p-5">
-              <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-                {t('coord.alerts')} <Chip tone={alerts.length ? 'rose' : 'teal'}>{alerts.length}</Chip>
-              </h2>
-              {alerts.length === 0 ? (
-                <p className="text-base text-muted">{t('coord.noAlerts')}</p>
-              ) : (
-                <ul className="space-y-2" aria-live="polite">
-                  {alerts.map((a) => (
-                    <li
-                      key={a.id}
-                      className={`rounded-card border p-3 ${a.tone === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => a.caseId && open_(a.caseId)}
-                        disabled={!a.caseId}
-                        className="flex w-full gap-3 text-left disabled:cursor-default"
+              <Group key={`esc-${sel}`} title={t('coord.grp.escalation')} open={current.status === 'alert'}>
+                <div className="mt-4">
+                  <p className="text-sm font-semibold">{t('coord.ladder')}</p>
+                  <ol className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-3" aria-label={t('coord.ladder')}>
+                    {LADDER.map((n) => (
+                      <li
+                        key={n}
+                        aria-current={step === n ? 'step' : undefined}
+                        className={`rounded-btn px-2 py-1.5 text-center text-sm ${step >= n ? 'bg-amber-50 font-semibold text-amber-700' : 'bg-surface text-muted'}`}
                       >
-                        <a.icon size={20} aria-hidden className={`mt-0.5 shrink-0 ${a.tone === 'rose' ? 'text-rose-700' : 'text-amber-700'}`} />
-                        <span>
-                          <span className="block font-semibold">
-                            {a.title} {a.when && <span className="font-normal text-muted">· {a.when}</span>}
-                            {a.flag && <Due f={a.flag} />}
-                          </span>
-                          <span className="block text-base">{a.body}</span>
-                        </span>
-                      </button>
-                      {a.flagId && (
-                        <Button
-                          className="ml-8 mt-2"
-                          variant="secondary"
-                          size="sm"
-                          icon={<Check size={16} aria-hidden />}
-                          onClick={() => resolveFlag(a.flagId!)}
-                        >
-                          {t('coord.resolve')}
-                        </Button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                        {t(`ladder.s${n}`)}
+                      </li>
+                    ))}
+                  </ol>
+                  <p className="mt-2 text-sm text-muted">{step === 0 ? t('coord.ladderNone') : t(`ladder.d${step}`)}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <Button variant="secondary" size="sm" disabled={step >= LADDER.length} onClick={() => setCaseStep(sel, step + 1)}>
+                      {step === 0 ? t('coord.ladderStart') : t('coord.ladderNext')}
+                    </Button>
+                    {step > 0 && (
+                      <Button variant="ghost" size="sm" onClick={() => setCaseStep(sel, 0)}>
+                        {t('coord.ladderClear')}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                  <Button variant="secondary" size="sm" icon={<Timer size={16} aria-hidden />} onClick={() => addCaseMinutes(sel, 15)}>
+                    {t('coord.addTime')}
+                  </Button>
+                </div>
+
+                <label htmlFor="notes" className="mb-1.5 mt-4 block text-sm font-semibold">
+                  {t('coord.notes')}
+                </label>
+                <Textarea id="notes" rows={4} value={note} onChange={(e) => setCaseNote(sel, e.target.value)} placeholder={t('coord.notesPh')} />
+                <p className="mt-1 text-sm text-muted">{t('coord.saved')}</p>
+                <Button className="mt-3" variant="secondary" onClick={() => markMissed(sel)}>
+                  {t('coord.markMissed')}
+                </Button>
+              </Group>
             </section>
           </div>
         </div>
@@ -496,5 +545,21 @@ function Due({ f }: { f: FlagT }) {
       <Timer size={12} aria-hidden />
       {label}
     </span>
+  )
+}
+
+/** Collapsible group inside the case detail, so the overview stays short. */
+function Group({ title, open, badge, children }: { title: string; open: boolean; badge?: number; children: React.ReactNode }) {
+  return (
+    <details open={open} className="group mt-4 rounded-card border border-line [&_section]:mt-3">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2 font-semibold [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-2">
+          {title}
+          {!!badge && <span className="rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700">{badge}</span>}
+        </span>
+        <ChevronDown size={18} aria-hidden className="shrink-0 transition group-open:rotate-180" />
+      </summary>
+      <div className="px-4 pb-4">{children}</div>
+    </details>
   )
 }

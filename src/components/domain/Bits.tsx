@@ -6,9 +6,7 @@ import { Chip } from '../ui/Chip'
 export function FictionalTag({ className = '' }: { className?: string }) {
   const { t } = useTranslation()
   return (
-    <span
-      className={`inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200 ${className}`}
-    >
+    <span className={`inline-flex items-center rounded-full bg-surface px-2 py-0.5 text-xs font-medium text-muted ring-1 ring-line ${className}`}>
       {t('common.fictional')}
     </span>
   )

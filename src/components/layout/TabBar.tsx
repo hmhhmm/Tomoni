@@ -16,13 +16,13 @@ export function TabBar() {
             <Link
               to={it.to}
               aria-current={isActive(it) ? 'page' : undefined}
-              className={`relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 text-[12px] leading-tight before:absolute before:inset-x-5 before:top-0 before:h-[3px] before:rounded-b-full ${isActive(it) ? 'font-semibold text-brand-600 before:bg-brand-600' : 'font-medium text-muted before:bg-transparent'}`}
+              className={`relative flex min-h-[64px] flex-col items-center justify-center gap-1 px-1 text-[14px] leading-tight before:absolute before:inset-x-5 before:top-0 before:h-[3px] before:rounded-b-full ${isActive(it) ? 'font-semibold text-brand-600 before:bg-brand-600' : 'font-medium text-muted before:bg-transparent'}`}
             >
               <span className="relative">
                 <it.icon size={24} aria-hidden />
                 {!!it.badge && (
                   <span
-                    className="absolute -right-2 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand-600 px-1 text-[10px] font-bold text-white"
+                    className="absolute -right-2 -top-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-brand-600 px-1 text-[11px] font-bold text-white"
                     aria-label={t(it.badgeKey ?? 'nav.unread', { n: it.badge })}
                   >
                     {it.badge}

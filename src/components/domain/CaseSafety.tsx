@@ -4,7 +4,12 @@ import { Check, LockKeyhole, PauseCircle, PlayCircle, Send, ShieldCheck } from '
 import { Button } from '../ui/Button'
 import { SAFEGUARD_KEYS, useStore } from '../../store'
 import { useL } from '../../lib/hooks'
-import type { CoordMessage, ReferralKind } from '../../data/types'
+import type { CoordMessage, ReferralKind, SafeguardKey } from '../../data/types'
+
+// Routine first, then the two escalations (shown in the danger style).
+// Stable empty values: a selector returning a new {} or [] each call makes React re-render forever.
+const NO_CHECKS: Partial<Record<SafeguardKey, boolean>> = {}
+const NO_REFERRALS: { kind: ReferralKind; when: string }[] = []
 
 const REFERRALS: ReferralKind[] = ['family', 'careManager', 'municipal', 'police']
 
@@ -27,7 +32,7 @@ export function PausedNotice() {
 /** Safeguarding checklist and pause switch for one case (IDEA.md §3.3, Autonomy). */
 export function SafeguardPanel({ caseId }: { caseId: string }) {
   const { t } = useTranslation()
-  const done = useStore((s) => s.safeguards[caseId] ?? {})
+  const done = useStore((s) => s.safeguards[caseId] ?? NO_CHECKS)
   const paused = useStore((s) => !!s.paused[caseId])
   const toggle = useStore((s) => s.toggleSafeguard)
   const setPaused = useStore((s) => s.setPaused)
@@ -40,7 +45,7 @@ export function SafeguardPanel({ caseId }: { caseId: string }) {
         {SAFEGUARD_KEYS.map((k) => (
           <li key={k}>
             <label className="flex cursor-pointer items-start gap-3 rounded-btn px-2 py-1.5 text-base hover:bg-surface">
-              <input type="checkbox" checked={!!done[k]} onChange={() => toggle(caseId, k)} className="mt-1 h-5 w-5 accent-teal-700" />
+              <input type="checkbox" checked={!!done[k]} onChange={() => toggle(caseId, k)} className="mt-1 h-5 w-5 accent-ink" />
               <span>{t(`coord.sg.${k}`)}</span>
             </label>
           </li>
@@ -51,7 +56,7 @@ export function SafeguardPanel({ caseId }: { caseId: string }) {
         <Button
           className="mt-2"
           size="sm"
-          variant={paused ? 'secondary' : 'ghost'}
+          variant="secondary"
           icon={paused ? <PlayCircle size={16} aria-hidden /> : <PauseCircle size={16} aria-hidden />}
           onClick={() => setPaused(caseId, !paused)}
         >
@@ -65,7 +70,7 @@ export function SafeguardPanel({ caseId }: { caseId: string }) {
 /** One-tap onward referrals; each is logged with the time (IDEA.md §3.2(c)). */
 export function ReferralPanel({ caseId }: { caseId: string }) {
   const { t } = useTranslation()
-  const log = useStore((s) => s.referrals[caseId] ?? [])
+  const log = useStore((s) => s.referrals[caseId] ?? NO_REFERRALS)
   const add = useStore((s) => s.addReferral)
   // Family can only be informed with the host's consent (the live case uses the real consent).
   const familyOk = useStore((s) => (caseId === 'c1' ? s.familyConsent : true))
@@ -79,7 +84,7 @@ export function ReferralPanel({ caseId }: { caseId: string }) {
           <Button
             key={k}
             size="sm"
-            variant="secondary"
+            variant={k === 'municipal' || k === 'police' ? 'danger' : 'secondary'}
             disabled={k === 'family' && !familyOk}
             title={k === 'family' && !familyOk ? t('coord.ref.noConsent') : undefined}
             onClick={() => add(caseId, k)}

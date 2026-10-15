@@ -19,6 +19,8 @@ export function AppShell() {
   const { persona, textLevel } = useStore()
   const toast = useUI((s) => s.toast)
   const focused = /^\/(saito\/create|saito\/help|aisha\/account\/verify)/.test(pathname)
+  // An open conversation fills the screen: no footer, and no tab bar on phones (it would cover the composer).
+  const inThread = /^\/(saito|aisha)\/messages\/.+/.test(pathname)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -47,8 +49,8 @@ export function AppShell() {
           </motion.div>
         </AnimatePresence>
       </main>
-      {!focused && <Footer />}
-      {!focused && <TabBar />}
+      {!focused && !inThread && <Footer />}
+      {!focused && !inThread && <TabBar />}
       <AnimatePresence>
         {toast && (
           <motion.div

@@ -29,7 +29,7 @@ Open the menu (top right) to switch between them. Each is a real session over th
 |------|----------|-----------------|
 | Host (Mrs Sato) | `/saito` | Edit the listing, set rent and help hours (10 h cap), review applicants ranked by match score (open a profile to message, plan a meet-up or reject), start a trial, sign, confirm help, answer the weekly check-in |
 | Housemate (Aisyah) | `/aisha` (her stay once she has one, otherwise Explore) | Search and filter rooms, save (the **Saved** button on Explore shows saved rooms), apply, message hosts, confirm meet-ups, sign, log help in the **Task log** (with the 28 h student tracker), monthly pulse, report a concern |
-| Family (Emi) | `/family` | Opt in, then see the weekly check-in, confirmed hours and meet-ups. Never messages |
+| Family (Emi) | `/family` | Opt in, then see the weekly check-in, confirmed hours, the agreed help and meet-ups, and message the coordinator. Never sees private messages |
 
 Mrs Sato's pages live under `/saito/...` and Aisyah's under `/aisha/...`; old `/host/...` and housemate URLs redirect there. The coordinator desk is at `/coordinator` and the Safety Centre at `/safety`.
 
@@ -37,7 +37,7 @@ Mrs Sato's pages live under `/saito/...` and Aisyah's under `/aisha/...`; old `/
 
 1. Host: **Applicants →** open Aisyah's profile **→ Message** (the guardrails react if you write about bathing, money or secrets).
    Language is a dropdown in the header. Chat leads in the chosen language, with the other language beneath.
-2. **Plan a meet-up** (the card above the message box): pick a time, then **Confirm and send** below the list. To change it later, **Edit meet-up** opens a pop-up. A notice appears in both people's chat and Aisyah taps **Confirm this time**. Then **Start the trial stay**, **Continue to the agreement**, sign.
+2. **Plan a meet-up** (the card above the message box): pick a time, then **Confirm and send** below the list. To change it later, **Edit meet-up** opens a pop-up. A notice appears in both people's chat and Aisyah taps **Confirm this time**. Once she has confirmed, **Start the trial stay**, **Continue to the agreement**, sign.
    Stay, Agreement and Check-in are one **Stay** area in the nav, with tabs at the top.
 3. Menu → **Finding a room as Aisyah**. Mark any task **I can't do this**, then sign.
    Any change to the tasks clears both signatures, so the host signs the final version again.
@@ -55,11 +55,11 @@ src/
   tokens.ts           design tokens and product rules (cap, membership, text sizes)
   store.ts            Zustand store, persisted to localStorage
   data/               types, seeded data, matching score, pricing maths, journey stages
-  lib/                guardrails + mock translation, formatting, hooks
+  lib/                guardrails + mock translation, formatting, hooks, paths (/saito and /aisha), sla (response deadlines)
   i18n/               en.ts and ja.ts (ja is type-checked against en)
   components/
     ui/               Button, Chip, Modal, Field, Stepper, Avatar, Photo
-    domain/           ListingCard, MapView, HourMeter, StepBar, ChatBubble, StayTabs, Bits
+    domain/           ListingCard, MapView, HourMeter, StepBar, ChatBubble, StayTabs, CaseSafety, CurrentStayCard, Bits
     layout/           Header, LangSelect, TabBar, Footer, AppShell, Wizard, Wordmark
   screens/
     host/             Today, People, CreateListing, HelpPicker, CheckIn
@@ -87,6 +87,7 @@ scripts/check-i18n.mjs
 - **Safeguarding**: each case has a checklist (met the host alone, references, home safety check) that must be complete before the Sato agreement can be approved. **Pause the arrangement** puts tasks on hold and shows a notice to both sides.
 - **Family contact**: "Contact the coordinator" on the family view sends a message that lands on the desk under the Sato case.
 - **Escalation ladder** (6 steps): nudge, coordinator call, written warning, mediated meeting, pre-agreed end, removal from Tomoni. "Switch to standard rent" is left out until a labour lawyer has reviewed it.
+- **Check-in photo and voice note**: the coordinator always sees them. Emi sees them only when Mrs Sato ticks **Also share with Emi** for that week (off by default). Aisyah never does. They are deleted after 30 days unless the coordinator ticks **Keep as evidence**.
 - **Family summary**: "This week in brief" on the family view is a template built only from check-ins, confirmed hours and plans. It never uses message content.
 - **Text size** (A / A+ / A++) is in the header for hosts and family.
 - **Japanese and English** cover every string. Messages are shown in the viewer's language with the original beneath and an "AI-assisted" label.

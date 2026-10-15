@@ -294,7 +294,7 @@ export function Agreement() {
                       <Button
                         className="mt-2"
                         block
-                        variant="dark"
+                        variant="primary"
                         disabled={!signable}
                         icon={<FileSignature size={18} aria-hidden />}
                         onClick={() => sign(who)}

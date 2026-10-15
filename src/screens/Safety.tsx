@@ -74,7 +74,7 @@ export function Safety() {
               </Button>
             </div>
           ) : (
-            <Button className="mt-4" variant="dark" icon={<PhoneCall size={18} aria-hidden />} onClick={() => setCalling(true)}>
+            <Button className="mt-4" variant="teal" icon={<PhoneCall size={18} aria-hidden />} onClick={() => setCalling(true)}>
               {t('safety.call')}
             </Button>
           )}
@@ -129,7 +129,7 @@ export function Safety() {
               <Textarea id="rep" rows={3} value={detail} onChange={(e) => setDetail(e.target.value)} />
               <Button
                 className="mt-4"
-                variant="dark"
+                variant="teal"
                 disabled={!cat}
                 onClick={() => {
                   addFlag({

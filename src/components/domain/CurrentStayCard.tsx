@@ -6,7 +6,7 @@ import { Chip } from '../ui/Chip'
 import { useStore, trialDay, weekHours } from '../../store'
 import { MEET_SLOTS } from '../../data/journey'
 import { formatDayTime } from '../../lib/format'
-import { RULES } from '../../tokens'
+import { RULES, SATO_HUE } from '../../tokens'
 
 /** Aisyah has (or is about to have) a room with Mrs Sato. */
 export const useHasStay = () =>
@@ -55,7 +55,7 @@ export function CurrentStayCard() {
   return (
     <section aria-labelledby="my-stay" className="overflow-hidden rounded-sheet border border-line bg-white shadow-lift sm:flex">
       <div className="aspect-[16/7] sm:aspect-auto sm:w-64 sm:shrink-0">
-        <Photo hue={262} scene="room" />
+        <Photo hue={SATO_HUE} scene="room" />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-3 p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-2">

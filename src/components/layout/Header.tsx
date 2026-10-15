@@ -26,7 +26,7 @@ import { Wordmark } from './Wordmark'
 import { LangSelect } from './LangSelect'
 import { useLivesThere } from '../domain/CurrentStayCard'
 import { Avatar } from '../ui/Avatar'
-import { RULES } from '../../tokens'
+import { RULES, SATO_HUE } from '../../tokens'
 import { pathFor } from '../../lib/paths'
 
 export interface NavItem {
@@ -164,7 +164,7 @@ export function Header() {
   const key = persona ?? 'none'
   const sizes = RULES.rootPx[key]
   const who = { host: t('names.sato'), tenant: tenant.name, family: t('names.emi') }
-  const hue = { host: 262, tenant: 172, family: 28 }
+  const hue = { host: SATO_HUE, tenant: 172, family: 28 }
 
   const personas = [
     { id: 'host' as const, label: t('menu.asHost', { name: who.host }), icon: <KeyRound size={20} aria-hidden />, to: '/saito' },
@@ -253,11 +253,11 @@ export function Header() {
 
           <Link
             to="/safety"
-            className="flex h-11 items-center gap-2 rounded-full bg-teal-50 px-[12px] text-[15px] font-semibold text-teal-700 ring-1 ring-teal-100 hover:bg-teal-100"
+            className="flex h-11 items-center gap-2 rounded-full bg-brand-600 px-[12px] text-[15px] font-semibold text-white hover:bg-brand-700"
             aria-label={t('safety.open')}
           >
             <ShieldAlert size={20} aria-hidden />
-            <span>{t('safety.short')}</span>
+            <span className="hidden sm:inline">{t('safety.short')}</span>
           </Link>
 
           <Popover
@@ -312,7 +312,7 @@ export function Header() {
                           role="radio"
                           aria-checked={textLevel === n}
                           onClick={() => setTextLevel(n as 0 | 1 | 2)}
-                          className={`h-10 flex-1 rounded-lg border text-[15px] font-semibold ${textLevel === n ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`}
+                          className={`h-11 flex-1 rounded-lg border text-[15px] font-semibold ${textLevel === n ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`}
                         >
                           {['A', 'A+', 'A++'][n]}
                         </button>

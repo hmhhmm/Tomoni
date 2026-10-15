@@ -23,7 +23,7 @@ export function Stepper({
   incLabel: string
 }) {
   const btn =
-    'grid h-10 w-10 place-items-center rounded-full border border-line bg-white text-ink transition hover:border-ink active:scale-95 disabled:opacity-30 disabled:hover:border-line'
+    'grid h-11 w-11 place-items-center rounded-full border border-field bg-white text-ink transition hover:border-ink active:scale-95 disabled:opacity-30 disabled:hover:border-field'
   return (
     <div className="inline-flex items-center gap-4" role="group" aria-label={label}>
       <button type="button" className={btn} aria-label={decLabel} disabled={value <= min} onClick={() => onChange(Math.max(min, value - step))}>

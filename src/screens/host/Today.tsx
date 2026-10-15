@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, CheckCircle2, ClipboardCheck, MessageCircle, Pencil, Users, HeartPulse, Clock } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ClipboardCheck, Pencil, Clock } from 'lucide-react'
 import { Page, FictionalTag, SectionTitle } from '../../components/domain/Bits'
 import { Avatar } from '../../components/ui/Avatar'
 import { Button, LinkButton } from '../../components/ui/Button'
@@ -14,20 +14,18 @@ import { AREAS } from '../../data/seed'
 import { HELP_ICONS } from '../../lib/helps'
 import { formatDay } from '../../lib/format'
 import { useL } from '../../lib/hooks'
+import { SATO_HUE } from '../../tokens'
 
 export function HostToday() {
   const { t } = useTranslation()
   const text = useL()
   const nav = useNavigate()
-  const { draft, helps, applicants, match, tasks, confirmTask, checkins, unread, lang } = useStore()
+  const { draft, helps, applicants, match, tasks, confirmTask, lang } = useStore()
   const area = AREAS.find((a) => a.id === draft.areaId)!
   const c = costs(draft.standardRent, draft.homeshareRent, helps)
   const pending = tasks.filter((x) => x.status === 'pending')
-  const newApps = applicants.filter((a) => a.status === 'new')
-  const unreadN = Object.values(unread.host).reduce((a, b) => a + b, 0)
   const idx = stageIndex(match.stage)
   const partner = applicants.find((a) => a.id === match.applicantId)
-  const pendingCheckin = checkins.find((x) => x.status === 'pending')
   const hour = new Date().getHours()
   const greet = hour < 11 ? 'greet.morning' : hour < 17 ? 'greet.day' : 'greet.evening'
 
@@ -40,18 +38,10 @@ export function HostToday() {
     ended: { label: t('today.next.ended'), to: '/saito/people' },
   }[match.stage]
 
-  const todos = [
-    ...(newApps.length ? [{ icon: Users, title: t('today.todoApplicants', { count: newApps.length }), to: '/saito/people' }] : []),
-    ...(unreadN ? [{ icon: MessageCircle, title: t('today.todoMessages', { count: unreadN }), to: '/saito/messages' }] : []),
-    ...(match.stage === 'living' && pendingCheckin
-      ? [{ icon: HeartPulse, title: t('today.todoCheckin', { week: pendingCheckin.week }), to: '/saito/checkin' }]
-      : []),
-  ]
-
   return (
     <Page className="py-8">
       <div className="mb-8 flex items-center gap-3">
-        <Avatar hue={262} size={56} label={t('names.sato')} />
+        <Avatar hue={SATO_HUE} size={56} label={t('names.sato')} />
         <div>
           <h1 className="text-[1.75rem] font-semibold leading-tight">{t(greet, { name: t('names.sato') })}</h1>
           <FictionalTag />
@@ -60,22 +50,31 @@ export function HostToday() {
 
       {/* Logged help waiting for her OK comes first: it is the one thing only she can do. */}
       {pending.length > 0 && (
-        <section aria-labelledby="confirm-title" className="mb-10 rounded-sheet border-2 border-brand-200 bg-brand-50 p-5 sm:p-6">
+        <section aria-labelledby="confirm-title" className="mb-10 rounded-sheet border border-line bg-white p-5 shadow-lift sm:p-6">
           <h2 id="confirm-title" className="flex items-center gap-2 text-xl font-semibold">
-            <ClipboardCheck size={24} aria-hidden className="text-brand-700" />
+            <ClipboardCheck size={24} aria-hidden className="text-teal-700" />
             {t('today.confirmTitle', { name: partner?.name ?? 'Aisyah', count: pending.length })}
           </h2>
-          <p className="mt-1 text-base">{t('today.confirmBody')}</p>
+          <p className="mt-1 text-base text-muted">{t('today.confirmBody')}</p>
           <ul className="mt-4 space-y-2">
             {pending.map((p) => {
               const Icon = HELP_ICONS[p.help]
               return (
-                <li key={p.id} className="flex flex-wrap items-center gap-4 rounded-card bg-white px-4 py-3 shadow-soft">
+                <li
+                  key={p.id}
+                  className="grid grid-cols-[auto_1fr] items-center gap-3 rounded-card bg-surface px-4 py-3 sm:grid-cols-[auto_1fr_auto]"
+                >
                   <Icon size={22} aria-hidden />
-                  <span className="flex-1 text-base font-medium">
+                  <span className="text-base font-medium">
                     {t(`help.${p.help}.title`)} · {p.hours} h · {formatDay(p.date, lang)}
                   </span>
-                  <Button size="md" variant="dark" icon={<CheckCircle2 size={18} aria-hidden />} onClick={() => confirmTask(p.id)}>
+                  <Button
+                    size="md"
+                    variant="teal"
+                    className="max-sm:col-span-2 max-sm:w-full"
+                    icon={<CheckCircle2 size={18} aria-hidden />}
+                    onClick={() => confirmTask(p.id)}
+                  >
                     {t('today.confirm')}
                   </Button>
                 </li>
@@ -104,7 +103,7 @@ export function HostToday() {
                           : ''}
                 </p>
                 <Button
-                  variant="dark"
+                  variant={pending.length > 0 ? 'secondary' : 'primary'}
                   size="lg"
                   icon={<ArrowRight size={18} aria-hidden />}
                   className="flex-row-reverse"
@@ -115,36 +114,12 @@ export function HostToday() {
               </div>
             </div>
           </section>
-
-          <section>
-            <SectionTitle>{t('today.todo')}</SectionTitle>
-            {todos.length === 0 ? (
-              <p className="flex items-center gap-2 rounded-card border border-dashed border-line p-5 text-base text-muted">
-                <CheckCircle2 size={20} aria-hidden className="text-teal-700" />
-                {t('today.allDone')}
-              </p>
-            ) : (
-              <ul className="divide-y divide-soft rounded-card border border-line">
-                {todos.map((td) => (
-                  <li key={td.title} className="flex items-center gap-4 px-5 py-4">
-                    <td.icon size={22} aria-hidden />
-                    <span className="flex-1 text-base font-medium">{td.title}</span>
-                    {td.to && (
-                      <LinkButton to={td.to} variant="secondary" size="sm">
-                        {t('common.open')}
-                      </LinkButton>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
         </div>
 
         <aside className="space-y-6">
           <section className="overflow-hidden rounded-card border border-line">
             <div className="aspect-[16/10]">
-              <Photo hue={262} scene="room" />
+              <Photo hue={SATO_HUE} scene="room" />
             </div>
             <div className="space-y-3 p-5">
               <div>
