@@ -169,7 +169,7 @@ const base = (): Data => ({
   unread: { host: { a2: 1, a3: 1, a4: 1, a5: 1 }, tenant: {} },
   familyConsent: false,
   pulse: null,
-  flags: [...SEED_FLAGS],
+  flags: SEED_FLAGS(),
   cases: SEED_CASES.map((c) => ({ ...c, checkins: [...c.checkins] })),
   caseNotes: {},
   caseStep: { c2: 2, c4: 1 },
@@ -390,8 +390,15 @@ export const useStore = create<State>()(
       confirmTask: (tid) => set((s) => ({ tasks: s.tasks.map((t) => (t.id === tid ? { ...t, status: 'confirmed' } : t)) })),
       patchTenant: (p) => set((s) => ({ tenant: { ...s.tenant, ...p } })),
       setFamilyConsent: (familyConsent) => set({ familyConsent }),
-      setPulse: (pulse) => set({ pulse }),
-      addFlag: (f) => set((s) => ({ flags: [{ ...f, id: id('f'), when: nowLabel() }, ...s.flags] })),
+      // Pulse answers stay anonymous: a "Not great" raises an alert with no case and no name.
+      setPulse: (pulse) => {
+        set({ pulse })
+        const low = Object.entries(pulse)
+          .filter(([, v]) => v === 'notgreat')
+          .map(([q]) => q)
+        if (low.length) get().addFlag({ caseId: null, kind: 'pulse', text: low.join(',') })
+      },
+      addFlag: (f) => set((s) => ({ flags: [{ ...f, id: id('f'), when: nowLabel(), at: new Date().toISOString() }, ...s.flags] })),
       resolveFlag: (fid) => set((s) => ({ flags: s.flags.map((f) => (f.id === fid ? { ...f, resolved: true } : f)) })),
       setCaseStep: (cid, step) => set((s) => ({ caseStep: { ...s.caseStep, [cid]: Math.max(0, Math.min(LADDER.length, step)) } })),
       addCaseMinutes: (cid, m) => set((s) => ({ caseMinutes: { ...s.caseMinutes, [cid]: (s.caseMinutes[cid] ?? 0) + m } })),

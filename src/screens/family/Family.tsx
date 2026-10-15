@@ -1,11 +1,14 @@
+import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, CalendarDays, Check, EyeOff, Hourglass, Lock, NotebookText, Phone, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { AlertTriangle, CalendarDays, Check, EyeOff, Hourglass, Lock, NotebookText, Phone, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { Page, Notice, FictionalTag } from '../../components/domain/Bits'
 import { Avatar } from '../../components/ui/Avatar'
 import { Button } from '../../components/ui/Button'
 import { HourMeter } from '../../components/domain/HourMeter'
 import { Chip } from '../../components/ui/Chip'
+import { Modal } from '../../components/ui/Modal'
+import { Textarea } from '../../components/ui/Field'
 import { useStore, weekHours } from '../../store'
 import { MEET_SLOTS } from '../../data/journey'
 import { formatDayTime } from '../../lib/format'
@@ -83,6 +86,10 @@ export function FamilyDashboard() {
   const say = useUI((s) => s.say)
   const lang = useStore((s) => s.lang)
   const { familyConsent, setFamilyConsent, checkins, tasks, match, applicants, tenant } = useStore()
+  const addFlag = useStore((s) => s.addFlag)
+  // "Contact the coordinator" lands on the coordinator desk for the Sato case.
+  const [contactOpen, setContactOpen] = useState(false)
+  const [contactMsg, setContactMsg] = useState('')
   if (!familyConsent) return <Navigate to="/family/invite" replace />
 
   const current = checkins[checkins.length - 1]
@@ -189,16 +196,47 @@ export function FamilyDashboard() {
         </section>
       )}
 
+      <Modal
+        open={contactOpen}
+        onClose={() => setContactOpen(false)}
+        title={t('family.contactTitle')}
+        size="sm"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setContactOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              icon={<Send size={16} aria-hidden />}
+              onClick={() => {
+                addFlag({ caseId: 'c1', kind: 'family', text: contactMsg.trim() || t('family.contactDefault') })
+                setContactMsg('')
+                setContactOpen(false)
+                say(t('family.contacted'))
+              }}
+            >
+              {t('family.contactSend')}
+            </Button>
+          </>
+        }
+      >
+        <label htmlFor="family-msg" className="block text-base">
+          {t('family.contactBody')}
+        </label>
+        <Textarea
+          id="family-msg"
+          rows={4}
+          className="mt-3"
+          value={contactMsg}
+          onChange={(e) => setContactMsg(e.target.value)}
+          placeholder={t('family.contactPh')}
+        />
+        <p className="mt-3 text-sm text-muted">{t('family.contactNote')}</p>
+      </Modal>
+
       <div className="mt-6 flex flex-wrap items-center gap-3">
-        <Button
-          variant="dark"
-          size="lg"
-          icon={<Phone size={18} aria-hidden />}
-          onClick={() => {
-            say(t('family.contacted'))
-            nav('/safety')
-          }}
-        >
+        <Button variant="dark" size="lg" icon={<Phone size={18} aria-hidden />} onClick={() => setContactOpen(true)}>
           {t('family.contact')}
         </Button>
         <Button

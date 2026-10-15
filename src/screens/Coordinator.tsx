@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, ArrowLeft, Check, FileSignature, Flag, MessageSquareWarning, PhoneCall, Timer } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, FileSignature, Flag, HeartPulse, MessageSquareWarning, PhoneCall, Timer, Users } from 'lucide-react'
 import { agreedHelps, useStore, missedRun, weekHours } from '../store'
 import { Wordmark } from '../components/layout/Wordmark'
 import { LangSelect } from '../components/layout/LangSelect'
@@ -12,7 +12,9 @@ import { useL } from '../lib/hooks'
 import { hoursOf } from '../data/pricing'
 import { RULES } from '../tokens'
 import { LADDER } from '../data/journey'
-import type { CaseRow, CheckinStatus } from '../data/types'
+import type { CaseRow, CheckinStatus, Flag as FlagT } from '../data/types'
+import { SEED_PULSES } from '../data/seed'
+import { hoursLeft, isSafety } from '../lib/sla'
 
 const TONE = { healthy: 'teal', trial: 'purple', review: 'purple', attention: 'amber', alert: 'rose' } as const
 /** Detail banner colour follows the case status. */
@@ -47,6 +49,7 @@ export function Coordinator() {
     setCaseStep,
     caseMinutes,
     addCaseMinutes,
+    pulse,
   } = useStore()
   const [sel, setSel] = useState('c1')
   useEffect(() => {
@@ -69,6 +72,18 @@ export function Coordinator() {
     [cases, checkins, open, tasks, match.stage, awaitingApproval],
   )
 
+  const flagBody = (f: FlagT) =>
+    f.kind === 'pulse'
+      ? t('coord.pulseFlag', {
+          qs: f.text
+            .split(',')
+            .map((q) => `“${t(`pulse.${q}`)}”`)
+            .join(', '),
+        })
+      : f.kind === 'family'
+        ? `${t('names.emi')}: “${f.text}”`
+        : `${f.caseId ? '' : `${t('coord.preMatch')}: `}“${f.text}”`
+
   const alerts = [
     ...(awaitingApproval
       ? [
@@ -81,6 +96,7 @@ export function Coordinator() {
             title: t('coord.approveAlert'),
             body: t('coord.approveAlertBody'),
             when: '',
+            flag: null as FlagT | null,
           },
         ]
       : []),
@@ -95,20 +111,27 @@ export function Coordinator() {
         title: t('coord.alertMissed'),
         body: `${text(r.household)}: ${t('coord.alertMissedBody')}`,
         when: '',
+        flag: null as FlagT | null,
       })),
-    ...open.map((f) => ({
-      id: f.id,
-      caseId: f.caseId,
-      flagId: f.id as string | null,
-      icon: f.kind === 'report' ? Flag : MessageSquareWarning,
-      tone: (f.kind === 'notgood' || f.kind === 'report' ? 'amber' : 'rose') as 'amber' | 'rose',
-      title: t(`coord.flag.${f.kind}`),
-      body: `${f.caseId ? '' : `${t('coord.preMatch')}: `}“${f.text}”`,
-      when: f.when,
-    })),
+    // Open flags, most urgent deadline first.
+    ...[...open]
+      .sort((x, y) => (hoursLeft(x) ?? 1e9) - (hoursLeft(y) ?? 1e9))
+      .map((f) => ({
+        id: f.id,
+        caseId: f.caseId,
+        flagId: f.id as string | null,
+        icon: f.kind === 'report' ? Flag : f.kind === 'family' ? Users : f.kind === 'pulse' ? HeartPulse : MessageSquareWarning,
+        tone: (['notgood', 'report', 'family', 'pulse'].includes(f.kind) ? 'amber' : 'rose') as 'amber' | 'rose',
+        title: t(`coord.flag.${f.kind}`),
+        body: flagBody(f),
+        when: f.when,
+        flag: f as FlagT | null,
+      })),
   ]
 
   const step = caseStep[sel] ?? 0
+  // Anonymous pulse: pooled across homes, never tied to a case or a name.
+  const pulses = [...SEED_PULSES, ...(pulse ? [pulse] : [])]
   const caseFlags = open.filter((f) => f.caseId === sel)
   const detailRef = useRef<HTMLElement>(null)
   const open_ = (id: string) => {
@@ -145,63 +168,91 @@ export function Coordinator() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr] [&>*]:min-w-0">
-          <section aria-label={t('coord.cases')} className="rounded-card border border-line bg-white p-5">
-            <h2 className="mb-3 text-lg font-semibold">{t('coord.cases')}</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-base">
-                <thead>
-                  <tr className="border-b border-soft text-sm text-muted">
-                    <th className="py-2 pr-3 font-medium">{t('coord.household')}</th>
-                    <th className="pr-3 font-medium">{t('coord.status')}</th>
-                    <th className="pr-3 font-medium">{t('coord.week')}</th>
-                    <th className="font-medium">{t('coord.checkins')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((r) => (
-                    <tr
-                      key={r.id}
-                      onClick={() => open_(r.id)}
-                      className={`cursor-pointer border-b border-soft transition-colors last:border-0 hover:bg-surface ${sel === r.id ? 'bg-surface shadow-[inset_3px_0_0_#222]' : ''}`}
-                    >
-                      <td className="py-3 pr-3">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            open_(r.id)
-                          }}
-                          aria-pressed={sel === r.id}
-                          className="text-left font-semibold underline-offset-2 hover:underline"
-                        >
-                          {text(r.household)}
-                          <span className="mt-0.5 block text-sm font-normal text-muted">
-                            {t('coord.tenant')}: {r.tenant}
-                          </span>
-                        </button>
-                      </td>
-                      <td className="pr-3">
-                        <Chip tone={TONE[r.status]}>{t(`coord.st.${r.status}`)}</Chip>
-                      </td>
-                      <td className="pr-3 tabular-nums">{r.week}</td>
-                      <td>
-                        <span
-                          role="img"
-                          className="flex flex-wrap gap-1"
-                          aria-label={r.checkins.map((c) => t(`checkin.status.${c}`)).join(', ') || t('coord.none')}
-                        >
-                          {r.checkins.slice(-8).map((c, i) => (
-                            <span key={i} aria-hidden className={`h-3 w-3 rounded-full ${DOT[c]}`} />
-                          ))}
-                          {r.checkins.length === 0 && <span className="text-sm text-muted">—</span>}
-                        </span>
-                      </td>
+          <div className="min-w-0 space-y-6">
+            <section aria-label={t('coord.cases')} className="rounded-card border border-line bg-white p-5">
+              <h2 className="mb-3 text-lg font-semibold">{t('coord.cases')}</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-base">
+                  <thead>
+                    <tr className="border-b border-soft text-sm text-muted">
+                      <th className="py-2 pr-3 font-medium">{t('coord.household')}</th>
+                      <th className="pr-3 font-medium">{t('coord.status')}</th>
+                      <th className="pr-3 font-medium">{t('coord.week')}</th>
+                      <th className="font-medium">{t('coord.checkins')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <tr
+                        key={r.id}
+                        onClick={() => open_(r.id)}
+                        className={`cursor-pointer border-b border-soft transition-colors last:border-0 hover:bg-surface ${sel === r.id ? 'bg-surface shadow-[inset_3px_0_0_#222]' : ''}`}
+                      >
+                        <td className="py-3 pr-3">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              open_(r.id)
+                            }}
+                            aria-pressed={sel === r.id}
+                            className="text-left font-semibold underline-offset-2 hover:underline"
+                          >
+                            {text(r.household)}
+                            <span className="mt-0.5 block text-sm font-normal text-muted">
+                              {t('coord.tenant')}: {r.tenant}
+                            </span>
+                          </button>
+                        </td>
+                        <td className="pr-3">
+                          <Chip tone={TONE[r.status]}>{t(`coord.st.${r.status}`)}</Chip>
+                        </td>
+                        <td className="pr-3 tabular-nums">{r.week}</td>
+                        <td>
+                          <span
+                            role="img"
+                            className="flex flex-wrap gap-1"
+                            aria-label={r.checkins.map((c) => t(`checkin.status.${c}`)).join(', ') || t('coord.none')}
+                          >
+                            {r.checkins.slice(-8).map((c, i) => (
+                              <span key={i} aria-hidden className={`h-3 w-3 rounded-full ${DOT[c]}`} />
+                            ))}
+                            {r.checkins.length === 0 && <span className="text-sm text-muted">—</span>}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section aria-labelledby="pulse-title" className="rounded-card border border-line bg-white p-5 lg:col-start-1">
+              <h2 id="pulse-title" className="text-lg font-semibold">
+                {t('coord.pulseTitle')}
+              </h2>
+              <p className="text-sm text-muted">{t('coord.pulseSub', { n: pulses.length })}</p>
+              <ul className="mt-4 space-y-3">
+                {(['q1', 'q2', 'q3'] as const).map((q) => {
+                  const n = (o: string) => pulses.filter((p) => p[q] === o).length
+                  return (
+                    <li key={q}>
+                      <p className="text-base font-medium">{t(`pulse.${q}`)}</p>
+                      <div className="mt-1 flex h-3 overflow-hidden rounded-full bg-soft" aria-hidden>
+                        <span className="bg-teal-500" style={{ width: `${(n('great') / pulses.length) * 100}%` }} />
+                        <span className="bg-purple-200" style={{ width: `${(n('fine') / pulses.length) * 100}%` }} />
+                        <span className="bg-amber-700" style={{ width: `${(n('notgreat') / pulses.length) * 100}%` }} />
+                      </div>
+                      <p className="mt-1 text-sm text-muted">
+                        {t('pulse.great')} {n('great')} · {t('pulse.fine')} {n('fine')} · {t('pulse.notgreat')} {n('notgreat')}
+                      </p>
+                    </li>
+                  )
+                })}
+              </ul>
+              <p className="mt-3 text-sm text-muted">{t('coord.pulseNote')}</p>
+            </section>
+          </div>
 
           <div className="min-w-0 space-y-6">
             <section ref={detailRef} aria-label={t('coord.detail')} className="scroll-mt-4 rounded-card border border-line bg-white p-5">
@@ -232,7 +283,7 @@ export function Coordinator() {
                     {caseFlags.map((f) => (
                       <li key={f.id} className="flex flex-wrap items-center gap-2 rounded-btn bg-white/70 p-2 text-sm">
                         <span className="min-w-0 flex-1">
-                          <strong>{t(`coord.flag.${f.kind}`)}</strong> · “{f.text}”
+                          <strong>{t(`coord.flag.${f.kind}`)}</strong> · {flagBody(f)} <Due f={f} />
                         </span>
                         <Button size="sm" variant="secondary" icon={<Check size={14} aria-hidden />} onClick={() => resolveFlag(f.id)}>
                           {t('coord.resolve')}
@@ -350,6 +401,7 @@ export function Coordinator() {
                         <span>
                           <span className="block font-semibold">
                             {a.title} {a.when && <span className="font-normal text-muted">· {a.when}</span>}
+                            {a.flag && <Due f={a.flag} />}
                           </span>
                           <span className="block text-base">{a.body}</span>
                         </span>
@@ -375,5 +427,23 @@ export function Coordinator() {
         <p className="text-center text-sm text-muted">{t('common.concept')}</p>
       </main>
     </div>
+  )
+}
+
+/** Response deadline: 24 h for safety items, 5 working days otherwise (lib/sla.ts). */
+function Due({ f }: { f: FlagT }) {
+  const { t } = useTranslation()
+  const h = hoursLeft(f)
+  if (h === null) return null
+  const over = h < 0
+  const label = over ? t('coord.overdue', { h: Math.abs(h) }) : h < 48 ? t('coord.dueH', { h }) : t('coord.dueD', { d: Math.ceil(h / 24) })
+  return (
+    <span
+      className={`ml-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 align-middle text-xs font-semibold ${over ? 'bg-rose-700 text-white' : h < 6 ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' : 'bg-white text-muted ring-1 ring-line'}`}
+      title={isSafety(f.kind) ? t('coord.slaSafety') : t('coord.slaOther')}
+    >
+      <Timer size={12} aria-hidden />
+      {label}
+    </span>
   )
 }

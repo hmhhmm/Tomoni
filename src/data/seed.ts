@@ -456,7 +456,35 @@ export const SEED_CASES: CaseRow[] = [
   },
 ]
 
-export const SEED_FLAGS: Flag[] = []
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3600_000).toISOString()
+
+/** Illustrative open items on other cases, so the desk shows a due and an overdue deadline. */
+export const SEED_FLAGS = (): Flag[] => [
+  {
+    id: 'fs1',
+    caseId: 'c4',
+    kind: 'report',
+    text: 'The heating has been off for two days and I did not want to bother her.',
+    when: 'Tue',
+    at: hoursAgo(30),
+  },
+  {
+    id: 'fs2',
+    caseId: 'c2',
+    kind: 'family',
+    text: 'My mother sounds tired on the phone. Could someone visit this week?',
+    when: 'Mon',
+    at: hoursAgo(50),
+  },
+]
+
+/** Anonymous monthly pulse answers from other homes (illustrative), pooled with the live one. */
+export const SEED_PULSES: Record<string, string>[] = [
+  { q1: 'great', q2: 'great', q3: 'great' },
+  { q1: 'fine', q2: 'great', q3: 'great' },
+  { q1: 'great', q2: 'fine', q3: 'great' },
+  { q1: 'fine', q2: 'notgreat', q3: 'fine' },
+]
 
 export const livingTasks = (): TaskEntry[] => [
   { id: 't1', help: 'groceries', hours: 2, date: daysAgo(2), status: 'confirmed' },

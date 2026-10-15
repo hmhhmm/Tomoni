@@ -77,9 +77,11 @@ export interface Flag {
   id: string
   /** null when the flag comes from a conversation before any match. */
   caseId: string | null
-  kind: 'money' | 'care' | 'romance' | 'report' | 'notgood'
+  kind: 'money' | 'care' | 'romance' | 'report' | 'notgood' | 'family' | 'pulse'
   text: string
   when: string
+  /** ISO time the flag was raised; drives the response deadline (lib/sla.ts). */
+  at?: string
   resolved?: boolean
 }
 
