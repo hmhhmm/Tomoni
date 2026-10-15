@@ -3,7 +3,8 @@ import { Link, type LinkProps } from 'react-router-dom'
 
 const variants = {
   primary: 'bg-gradient-to-r from-purple-600 to-purple-500 text-white hover:from-purple-700 hover:to-purple-600',
-  dark: 'bg-ink text-white hover:bg-black',
+  // Main action. Was black; now the brand purple so confirm and next-step buttons read as positive.
+  dark: 'bg-purple-600 text-white hover:bg-purple-700',
   secondary: 'border border-ink bg-white text-ink hover:bg-surface',
   soft: 'bg-purple-50 text-purple-700 hover:bg-purple-100',
   ghost: 'text-ink underline-offset-4 hover:underline',

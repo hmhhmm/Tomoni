@@ -6,7 +6,6 @@ import { AppShell } from './components/layout/AppShell'
 import { Landing } from './screens/Landing'
 import { Explore } from './screens/tenant/Explore'
 import { ListingDetail } from './screens/tenant/ListingDetail'
-import { Saved } from './screens/tenant/Saved'
 import { Log } from './screens/tenant/Log'
 import { Account } from './screens/tenant/Account'
 import { Verify } from './screens/tenant/Verify'
@@ -47,7 +46,7 @@ export default function App() {
         <Route path="/agreement" element={<Agreement />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/rooms/:id" element={<ListingDetail />} />
-        <Route path="/saved" element={<Saved />} />
+        <Route path="/saved" element={<Navigate to="/explore?saved=1" replace />} />
         <Route path="/log" element={<Log />} />
         <Route path="/account" element={<Account />} />
         <Route path="/account/verify" element={<Verify />} />

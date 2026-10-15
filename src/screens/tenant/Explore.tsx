@@ -15,6 +15,7 @@ import {
   UserRound,
   LayoutGrid,
   SearchX,
+  Heart,
 } from 'lucide-react'
 import { Page, EmptyState, Notice } from '../../components/domain/Bits'
 import { ListingCard } from '../../components/domain/ListingCard'
@@ -100,6 +101,7 @@ export function Explore() {
   const text = useL()
   const lang = useStore((s) => s.lang)
   const tenant = useStore((s) => s.tenant)
+  const saved = useStore((s) => s.saved)
   const all = useListings()
   const f = useFilters()
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -111,9 +113,11 @@ export function Explore() {
   }, [])
 
   const showMap = f.get('map') === '1'
+  // Saved rooms are a view of this page (?saved=1), not a separate tab.
+  const savedOnly = f.get('saved') === '1'
   const sort = f.get('sort', 'rec')
   const results = useMemo(() => {
-    const r = applyFilters(all, f, companionOnly)
+    const r = savedOnly ? all.filter((l) => saved.includes(l.id)) : applyFilters(all, f, companionOnly)
     const by: Record<string, (a: Listing, b: Listing) => number> = {
       cost: (a, b) => a.homeshareRent - b.homeshareRent,
       hours: (a, b) => hoursOf(a.helps) - hoursOf(b.helps),
@@ -137,6 +141,8 @@ export function Explore() {
     f.get('tier'),
     sort,
     companionOnly,
+    savedOnly,
+    saved,
   ])
 
   const activeFilters = ['min', 'max', 'hours', 'lang', 'gender', 'pets', 'walk', 'tier'].filter((k) => f.get(k)).length
@@ -276,9 +282,18 @@ export function Explore() {
         )}
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-base font-semibold" aria-live="polite">
-            {t('explore.count', { count: results.length })}
+            {savedOnly ? t('saved.title') : t('explore.count', { count: results.length })}
           </h1>
           <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant={savedOnly ? 'soft' : 'secondary'}
+              size="sm"
+              aria-pressed={savedOnly}
+              icon={<Heart size={16} aria-hidden className={savedOnly ? 'fill-purple-600 text-purple-600' : ''} />}
+              onClick={() => f.set({ saved: savedOnly ? null : '1' })}
+            >
+              {savedOnly ? t('saved.showAll') : t('saved.button', { n: saved.length })}
+            </Button>
             <label className="flex items-center gap-2 text-sm text-muted">
               <span>{t('explore.sort')}</span>
               <Select
@@ -314,6 +329,17 @@ export function Explore() {
               </div>
             ))}
           </div>
+        ) : savedOnly && results.length === 0 ? (
+          <EmptyState
+            icon={<Heart size={26} aria-hidden />}
+            title={t('saved.emptyTitle')}
+            body={t('saved.emptyBody')}
+            action={
+              <Button variant="dark" onClick={() => f.set({ saved: null })}>
+                {t('saved.explore')}
+              </Button>
+            }
+          />
         ) : results.length === 0 ? (
           <EmptyState
             icon={<SearchX size={26} aria-hidden />}

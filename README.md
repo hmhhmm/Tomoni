@@ -27,21 +27,23 @@ Open the menu (top right) to switch between them. Each is a real session over th
 
 | View | Start at | What you can do |
 |------|----------|-----------------|
-| Host (Mrs Sato) | `/host` | Edit the listing, set rent and help hours (10 h cap), review applicants ranked by match score, message, plan a meet-up, start a trial, sign, confirm help, answer the weekly check-in |
-| Housemate (Aisyah) | `/explore` | Search and filter rooms, save, apply, message hosts, sign, log help (with the 28 h student tracker), monthly pulse, report a concern |
+| Host (Mrs Sato) | `/host` | Edit the listing, set rent and help hours (10 h cap), review applicants ranked by match score (open a profile to message, plan a meet-up or reject), start a trial, sign, confirm help, answer the weekly check-in |
+| Housemate (Aisyah) | `/explore` | Search and filter rooms, save (the **Saved** button on Explore shows saved rooms), apply, message hosts, sign, log help (with the 28 h student tracker), monthly pulse, report a concern |
 | Family (Emi) | `/family` | Opt in, then see the weekly check-in, confirmed hours and meet-ups. Never messages |
 
 The coordinator desk is at `/coordinator` and the Safety Centre at `/safety`.
 
 ### A natural walk-through
 
-1. Host: **Today → Applicants → Message** Aisyah (the guardrails react if you write about bathing, money or secrets).
-2. **Plan a meet-up**, **Start the trial stay**, **Continue to the agreement**, sign.
+1. Host: **Applicants →** open Aisyah's profile **→ Message** (the guardrails react if you write about bathing, money or secrets).
+   Language is a dropdown in the header. Chat leads in the chosen language, with the other language beneath.
+2. **Plan a meet-up** (a notice appears in both people's chat), **Start the trial stay**, **Continue to the agreement**, sign.
+   Stay, Agreement and Check-in are one **Stay** area in the nav, with tabs at the top.
 3. Menu → **Finding a room as Aisyah**. Mark any task **I can't do this**, then sign.
    Any change to the tasks clears both signatures, so the host signs the final version again.
 4. Open the **Coordinator desk** → **Approve agreement**. You are now living together.
 5. Aisyah logs help in **Help log**. Menu → host → **Today → Confirm**.
-6. Host **Check-in → All good**. Menu → **Family view** to see it.
+6. Host **Stay → Check-in tab → All good**. Menu → **Family view** to see it.
 7. **Coordinator desk** shows flagged messages and missed check-ins. Resolve flags, move a case up the escalation steps and log coordinator time.
 
 Prefer to skip ahead? Menu → **Load sample: week 3 of living together**. Menu → **Start over with fresh sample data** resets everything.
@@ -57,11 +59,11 @@ src/
   i18n/               en.ts and ja.ts (ja is type-checked against en)
   components/
     ui/               Button, Chip, Modal, Field, Stepper, Avatar, Photo
-    domain/           ListingCard, MapView, HourMeter, StepBar, ChatBubble, Bits
-    layout/           Header, TabBar, Footer, AppShell, Wizard, Wordmark
+    domain/           ListingCard, MapView, HourMeter, StepBar, ChatBubble, StayTabs, Bits
+    layout/           Header, LangSelect, TabBar, Footer, AppShell, Wizard, Wordmark
   screens/
     host/             Today, People, CreateListing, HelpPicker, CheckIn
-    tenant/           Explore, ListingDetail, Saved, Log, Account, Verify, Pulse
+    tenant/           Explore (with the saved view), ListingDetail, Log, Account, Verify, Pulse
     family/           Family (invite + dashboard)
     Landing, Messages, Stay, Agreement, Safety, Coordinator
 scripts/check-i18n.mjs

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, ArrowLeft, Check, Clock, FileSignature, Flag, HeartPulse, MessageSquareWarning, Timer, Users, Globe } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Check, Clock, FileSignature, Flag, HeartPulse, MessageSquareWarning, Timer, Users } from 'lucide-react'
 import { agreedHelps, useStore, missedRun, weekHours } from '../store'
 import { Wordmark } from '../components/layout/Wordmark'
+import { LangSelect } from '../components/layout/LangSelect'
 import { Chip } from '../components/ui/Chip'
 import { Button } from '../components/ui/Button'
 import { Textarea } from '../components/ui/Field'
@@ -24,8 +25,6 @@ export function Coordinator() {
     checkins,
     flags,
     tasks,
-    lang,
-    setLang,
     caseNotes,
     setCaseNote,
     markMissed,
@@ -120,15 +119,7 @@ export function Coordinator() {
             <Chip tone="purple">{t('coord.concept')}</Chip>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setLang(lang === 'en' ? 'ja' : 'en')}
-              className="flex h-11 items-center gap-2 rounded-full px-3 text-base font-medium hover:bg-surface"
-            >
-              <Globe size={18} aria-hidden />
-              <span className="sr-only">{t('lang.toggleLabel')}: </span>
-              {lang === 'en' ? '日本語' : 'English'}
-            </button>
+            <LangSelect />
             <Link to="/" className="inline-flex h-11 items-center gap-2 rounded-btn bg-ink px-4 text-base font-semibold text-white">
               <ArrowLeft size={16} aria-hidden /> {t('coord.back')}
             </Link>

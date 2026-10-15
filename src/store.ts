@@ -291,7 +291,18 @@ export const useStore = create<State>()(
             ...UNSIGNED,
           }
         }),
-      bookMeet: (meetSlot) => set((s) => ({ match: { ...s.match, meetSlot } })),
+      // Booking a meet-up also posts a notice into the chat so both sides see it.
+      bookMeet: (meetSlot) =>
+        set((s) => {
+          const key = s.match.applicantId
+          if (!key) return { match: { ...s.match, meetSlot } }
+          const notice: Message = { id: id('m'), from: 'host', origLang: 'ja', ja: '', en: '', when: nowLabel(), event: 'meet', meetSlot }
+          return {
+            match: { ...s.match, meetSlot },
+            threads: { ...s.threads, [key]: [...(s.threads[key] ?? []), notice] },
+            unread: { ...s.unread, tenant: { ...s.unread.tenant, [key]: (s.unread.tenant[key] ?? 0) + 1 } },
+          }
+        }),
       clearMeet: () => set((s) => ({ match: { ...s.match, meetSlot: null } })),
       startTrial: (trialWeeks) => set((s) => ({ match: { ...s.match, stage: 'trial', trialWeeks, trialStart: daysAgo(0) } })),
       endTrial: () => set((s) => ({ match: { ...s.match, stage: 'ended' } })),

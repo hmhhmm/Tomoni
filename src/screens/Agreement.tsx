@@ -17,6 +17,7 @@ import { yen } from '../lib/hooks'
 import { useUI } from '../ui'
 import type { HelpId } from '../data/types'
 import { RULES } from '../tokens'
+import { StayTabs } from '../components/domain/StayTabs'
 
 export function Agreement() {
   const { t } = useTranslation()
@@ -41,6 +42,7 @@ export function Agreement() {
   if (match.stage === 'none' || (viewer === 'tenant' && match.applicantId !== 'a1')) {
     return (
       <Page narrow className="py-10">
+        <StayTabs />
         <EmptyState
           icon={<FileSignature size={26} aria-hidden />}
           title={t('pact.emptyTitle')}
@@ -207,6 +209,7 @@ export function Agreement() {
 
   return (
     <Page className="py-8">
+      <StayTabs />
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-[1.75rem] font-semibold">{t('pact.title')}</h1>
         <Chip tone="amber">{t('pact.watermark')}</Chip>

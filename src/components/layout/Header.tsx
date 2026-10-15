@@ -1,16 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   Check,
-  Globe,
   Home,
   Users,
   MessageCircle,
-  FileSignature,
-  HeartPulse,
   Search,
-  Heart,
   ListChecks,
   BedDouble,
   Menu,
@@ -27,6 +23,7 @@ import {
 import { useStore } from '../../store'
 import { useUI } from '../../ui'
 import { Wordmark } from './Wordmark'
+import { LangSelect } from './LangSelect'
 import { Avatar } from '../ui/Avatar'
 import { RULES } from '../../tokens'
 
@@ -36,34 +33,48 @@ export interface NavItem {
   key: string
   badge?: number
   bottom?: boolean
+  /** Other routes that count as this item (Stay covers the agreement and the check-in). */
+  also?: string[]
 }
+
+/** Stay, Agreement and Check-in are one area in the nav, with tabs inside it. */
+export const STAY_ROUTES = ['/stay', '/agreement', '/host/checkin']
 
 export function useNav(): NavItem[] {
   const persona = useStore((s) => s.persona)
   const unread = useStore((s) => s.unread)
-  const newApplicants = useStore((s) => s.applicants.filter((a) => a.status === 'new').length)
-  const sum = (o: Record<string, number>) => Object.values(o).reduce((a, b) => a + b, 0)
+  const applicants = useStore((s) => s.applicants)
+  // Badges only count people who are still active (not rejected).
+  const active = applicants.filter((a) => a.status !== 'declined')
+  const hostUnread = active.reduce((n, a) => n + (unread.host[a.id] ?? 0), 0)
+  const tenantUnread = Object.values(unread.tenant).reduce((a, b) => a + b, 0)
   if (persona === 'host') {
     return [
       { to: '/host', icon: Home, key: 'nav.today', bottom: true },
-      { to: '/host/people', icon: Users, key: 'nav.people', badge: newApplicants, bottom: true },
-      { to: '/messages', icon: MessageCircle, key: 'nav.messages', badge: sum(unread.host), bottom: true },
-      { to: '/stay', icon: BedDouble, key: 'nav.stay', bottom: true },
-      { to: '/agreement', icon: FileSignature, key: 'nav.agreement' },
-      { to: '/host/checkin', icon: HeartPulse, key: 'nav.checkin', bottom: true },
+      { to: '/host/people', icon: Users, key: 'nav.people', badge: active.length, bottom: true },
+      { to: '/messages', icon: MessageCircle, key: 'nav.messages', badge: hostUnread, bottom: true },
+      { to: '/stay', icon: BedDouble, key: 'nav.stay', bottom: true, also: STAY_ROUTES },
     ]
   }
   if (persona === 'tenant') {
     return [
-      { to: '/explore', icon: Search, key: 'nav.explore', bottom: true },
-      { to: '/saved', icon: Heart, key: 'nav.saved', bottom: true },
-      { to: '/messages', icon: MessageCircle, key: 'nav.messages', badge: sum(unread.tenant), bottom: true },
-      { to: '/stay', icon: BedDouble, key: 'nav.stay', bottom: true },
+      { to: '/explore', icon: Search, key: 'nav.explore', bottom: true, also: ['/rooms'] },
+      { to: '/messages', icon: MessageCircle, key: 'nav.messages', badge: tenantUnread, bottom: true },
+      { to: '/stay', icon: BedDouble, key: 'nav.stay', bottom: true, also: STAY_ROUTES },
       { to: '/log', icon: ListChecks, key: 'nav.log', bottom: true },
     ]
   }
   if (persona === 'family') return [{ to: '/family', icon: LayoutDashboard, key: 'nav.family', bottom: true }]
   return []
+}
+
+/** True when the current path belongs to this nav item. */
+export function useIsActive() {
+  const { pathname } = useLocation()
+  return (it: NavItem) => {
+    const routes = [it.to, ...(it.also ?? [])]
+    return routes.some((r) => (r === '/host' ? pathname === '/host' : pathname === r || pathname.startsWith(`${r}/`)))
+  }
 }
 
 function Popover({
@@ -138,9 +149,10 @@ const Divider = () => <div className="my-2 border-t border-soft" role="separator
 export function Header() {
   const { t } = useTranslation()
   const nav = useNavigate()
-  const { persona, lang, setLang, setPersona, textLevel, setTextLevel, tenant, loadScenario } = useStore()
+  const { persona, setPersona, textLevel, setTextLevel, tenant, loadScenario } = useStore()
   const say = useUI((s) => s.say)
   const items = useNav()
+  const isActive = useIsActive()
   const key = persona ?? 'none'
   const sizes = RULES.rootPx[key]
   const who = { host: t('names.sato'), tenant: tenant.name, family: t('names.emi') }
@@ -164,12 +176,10 @@ export function Header() {
             <ul className="flex items-center gap-0.5">
               {items.map((it) => (
                 <li key={it.to}>
-                  <NavLink
+                  <Link
                     to={it.to}
-                    end={it.to === '/host'}
-                    className={({ isActive }) =>
-                      `relative flex h-11 items-center gap-2 rounded-full px-[12px] text-[15px] font-medium transition-colors ${isActive ? 'bg-surface font-semibold text-ink' : 'text-muted hover:bg-surface hover:text-ink'}`
-                    }
+                    aria-current={isActive(it) ? 'page' : undefined}
+                    className={`relative flex h-11 items-center gap-2 rounded-full px-[12px] text-[15px] transition-colors after:absolute after:inset-x-3 after:-bottom-[18px] after:h-[3px] after:rounded-full ${isActive(it) ? 'font-semibold text-ink after:bg-purple-600' : 'font-medium text-muted hover:text-ink after:bg-transparent hover:after:bg-line'}`}
                   >
                     <span>{t(it.key)}</span>
                     {!!it.badge && (
@@ -180,7 +190,7 @@ export function Header() {
                         {it.badge}
                       </span>
                     )}
-                  </NavLink>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -231,15 +241,7 @@ export function Header() {
             </Popover>
           )}
 
-          <button
-            type="button"
-            onClick={() => setLang(lang === 'en' ? 'ja' : 'en')}
-            className="flex h-11 items-center gap-2 rounded-full px-[10px] text-[15px] font-medium hover:bg-surface"
-          >
-            <Globe size={20} aria-hidden />
-            <span className="sr-only">{t('lang.toggleLabel')}: </span>
-            <span lang={lang === 'en' ? 'ja' : 'en'}>{lang === 'en' ? '日本語' : 'English'}</span>
-          </button>
+          <LangSelect />
 
           <Link
             to="/safety"

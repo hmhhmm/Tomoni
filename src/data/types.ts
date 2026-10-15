@@ -68,6 +68,9 @@ export interface Message {
   when: string
   flag?: 'care' | 'money' | 'romance'
   untranslated?: boolean
+  /** A system notice in the thread instead of a person's message (rendered from `meetSlot`). */
+  event?: 'meet'
+  meetSlot?: string
 }
 
 export interface Flag {

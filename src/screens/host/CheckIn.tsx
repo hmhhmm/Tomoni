@@ -6,6 +6,7 @@ import { Page, EmptyState, Notice } from '../../components/domain/Bits'
 import { Button, LinkButton } from '../../components/ui/Button'
 import { Chip } from '../../components/ui/Chip'
 import { useStore } from '../../store'
+import { StayTabs } from '../../components/domain/StayTabs'
 
 export function CheckIn() {
   const { t } = useTranslation()
@@ -29,6 +30,7 @@ export function CheckIn() {
   if (match.stage !== 'living') {
     return (
       <Page narrow className="py-10">
+        <StayTabs />
         <EmptyState
           icon={<HeartPulse size={26} aria-hidden />}
           title={t('checkin.notYetTitle')}
@@ -45,6 +47,7 @@ export function CheckIn() {
 
   return (
     <Page narrow className="py-8">
+      <StayTabs />
       <h1 className="text-[1.75rem] font-semibold">{t('checkin.title')}</h1>
       <p className="mt-1 text-base text-muted">{pending ? t('checkin.lede', { week: pending.week }) : t('checkin.doneLede')}</p>
 

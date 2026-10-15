@@ -8,21 +8,23 @@ import { Button, LinkButton } from '../components/ui/Button'
 import { Pill } from '../components/ui/Chip'
 import { StepBar } from '../components/domain/StepBar'
 import { HourMeter } from '../components/domain/HourMeter'
-import { useStore, trialDay } from '../store'
+import { agreedHelps, useStore, trialDay } from '../store'
 import { costs } from '../data/pricing'
 import { MEET_SLOTS, stageIndex } from '../data/journey'
 import { formatDayTime } from '../lib/format'
 import { useL, yen } from '../lib/hooks'
+import { StayTabs } from '../components/domain/StayTabs'
 
 export function Stay() {
   const { t } = useTranslation()
   const text = useL()
   const nav = useNavigate()
-  const { persona, lang, match, applicants, draft, helps, bookMeet, clearMeet, startTrial, endTrial, resumeTrial, goPact, pactSigned } = useStore()
+  const { persona, lang, match, applicants, draft, pactHelps, declined, bookMeet, clearMeet, startTrial, endTrial, resumeTrial, goPact, pactSigned } =
+    useStore()
   const [weeks, setWeeks] = useState(match.trialWeeks)
   const side = persona === 'tenant' ? 'tenant' : 'host'
   const a = applicants.find((x) => x.id === match.applicantId)
-  const c = costs(draft.standardRent, draft.homeshareRent, helps)
+  const c = costs(draft.standardRent, draft.homeshareRent, agreedHelps({ pactHelps, declined }))
   const fmt = (d: Date) => formatDayTime(d, lang)
 
   // Tenant persona (Aisyah) only sees a stay that involves her.
@@ -30,6 +32,7 @@ export function Stay() {
   if (!visible) {
     return (
       <Page narrow className="py-10">
+        <StayTabs />
         <EmptyState
           icon={<BedDouble size={26} aria-hidden />}
           title={t('stay.emptyTitle')}
@@ -55,6 +58,7 @@ export function Stay() {
 
   return (
     <Page className="py-8">
+      <StayTabs />
       <h1 className="text-[1.75rem] font-semibold">{t('stay.title')}</h1>
       <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-8">

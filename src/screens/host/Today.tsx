@@ -12,7 +12,7 @@ import { costs } from '../../data/pricing'
 import { stageIndex } from '../../data/journey'
 import { AREAS } from '../../data/seed'
 import { HELP_ICONS } from '../../lib/helps'
-import { useL, yen } from '../../lib/hooks'
+import { useL } from '../../lib/hooks'
 
 export function HostToday() {
   const { t } = useTranslation()
@@ -27,7 +27,6 @@ export function HostToday() {
   const idx = stageIndex(match.stage)
   const partner = applicants.find((a) => a.id === match.applicantId)
   const pendingCheckin = checkins.find((x) => x.status === 'pending')
-  const last = [...checkins].reverse().find((x) => x.status !== 'pending')
   const hour = new Date().getHours()
   const greet = hour < 11 ? 'greet.morning' : hour < 17 ? 'greet.day' : 'greet.evening'
 
@@ -58,27 +57,6 @@ export function HostToday() {
           <FictionalTag />
         </div>
       </div>
-
-      {/* Metrics computed from real state */}
-      <section aria-label={t('today.metrics')} className="mb-10 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <Metric
-          label={t('today.mApplicants')}
-          value={String(applicants.filter((a) => a.status !== 'declined').length)}
-          sub={t('today.mApplicantsSub', { n: newApps.length })}
-        />
-        <Metric label={t('today.mHours')} value={`${c.weeklyHours} / 10 h`} sub={t('today.mHoursSub', { m: c.monthlyHours })} />
-        <Metric
-          label={t('today.mRent')}
-          value={yen(draft.homeshareRent)}
-          sub={t('today.mRentSub', { pct: c.discountPct, std: yen(draft.standardRent) })}
-        />
-        <Metric
-          label={t('today.mCheckin')}
-          value={last ? t(`checkin.status.${last.status}`) : match.stage === 'living' ? t('checkin.status.pending') : '—'}
-          sub={last ? t('checkin.week', { n: last.week }) : t('today.mCheckinNone')}
-          tone={last?.status === 'good' ? 'teal' : last?.status === 'notgood' ? 'amber' : undefined}
-        />
-      </section>
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-10">
@@ -143,7 +121,7 @@ export function HostToday() {
                       <span className="flex-1 text-base font-medium">
                         {t(`help.${p.help}.title`)} · {p.hours} h · {partner?.name ?? 'Aisyah'}
                       </span>
-                      <Button size="sm" variant="teal" icon={<CheckCircle2 size={16} aria-hidden />} onClick={() => confirmTask(p.id)}>
+                      <Button size="sm" variant="dark" icon={<CheckCircle2 size={16} aria-hidden />} onClick={() => confirmTask(p.id)}>
                         {t('today.confirm')}
                       </Button>
                     </li>
@@ -192,19 +170,5 @@ export function HostToday() {
         </aside>
       </div>
     </Page>
-  )
-}
-
-function Metric({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: 'teal' | 'amber' }) {
-  return (
-    <div className="rounded-card border border-line p-4 sm:p-5">
-      <p className="text-sm font-medium text-muted">{label}</p>
-      <p
-        className={`mt-1 text-[1.25rem] sm:text-[1.5rem] font-semibold tabular-nums leading-tight ${tone === 'teal' ? 'text-teal-700' : tone === 'amber' ? 'text-amber-700' : ''}`}
-      >
-        {value}
-      </p>
-      <p className="mt-1 text-sm text-muted">{sub}</p>
-    </div>
   )
 }

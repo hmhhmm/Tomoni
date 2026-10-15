@@ -1,12 +1,11 @@
 import { Languages } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import type { Message, Side } from '../../data/types'
+import type { Lang, Message, Side } from '../../data/types'
 
-/** One message: leads with the viewer's language, shows the other language beneath with the AI label. */
-export function ChatBubble({ msg, viewer }: { msg: Message; viewer: Side }) {
+/** One message: leads with the page language, shows the other language beneath with the AI label. */
+export function ChatBubble({ msg, viewer, lang }: { msg: Message; viewer: Side; lang: Lang }) {
   const { t } = useTranslation()
   const mine = msg.from === viewer
-  const lang = viewer === 'host' ? 'ja' : 'en'
   const other = lang === 'ja' ? 'en' : 'ja'
   const lead = msg[lang]
   const trail = msg[other]

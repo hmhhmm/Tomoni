@@ -1,23 +1,22 @@
-import { NavLink } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useNav } from './Header'
+import { useIsActive, useNav } from './Header'
 
 /** Airbnb-style bottom tab bar for small screens. */
 export function TabBar() {
   const { t } = useTranslation()
   const items = useNav().filter((i) => i.bottom)
+  const isActive = useIsActive()
   if (items.length < 2) return null
   return (
     <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 border-t border-soft bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
       <ul className="mx-auto flex max-w-xl">
         {items.map((it) => (
           <li key={it.to} className="flex-1">
-            <NavLink
+            <Link
               to={it.to}
-              end={it.to === '/host'}
-              className={({ isActive }) =>
-                `relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 text-[12px] font-medium leading-tight ${isActive ? 'text-purple-600' : 'text-muted'}`
-              }
+              aria-current={isActive(it) ? 'page' : undefined}
+              className={`relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 text-[12px] leading-tight before:absolute before:inset-x-5 before:top-0 before:h-[3px] before:rounded-b-full ${isActive(it) ? 'font-semibold text-purple-600 before:bg-purple-600' : 'font-medium text-muted before:bg-transparent'}`}
             >
               <span className="relative">
                 <it.icon size={24} aria-hidden />
@@ -31,7 +30,7 @@ export function TabBar() {
                 )}
               </span>
               <span>{t(it.key)}</span>
-            </NavLink>
+            </Link>
           </li>
         ))}
       </ul>
