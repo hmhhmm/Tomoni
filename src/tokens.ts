@@ -53,6 +53,8 @@ export const SATO_HUE = 32
 /** Rules of the product, shared by UI and logic. */
 export const RULES = {
   weeklyHourCap: 10,
+  /** Check-in photos and voice notes are deleted after this many days unless kept as evidence. */
+  mediaDays: 30,
   studentWeeklyLimit: 28,
   membershipYen: 8000,
   weeksPerMonth: 52 / 12,

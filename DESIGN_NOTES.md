@@ -119,7 +119,7 @@ Explore's round search button stays red as the one exception: it is the signatur
 - Guardrails are keyword matching in English and Japanese. A real product needs reviewed models and human review.
 - Other hosts' replies are canned. Everything is stored in the browser, so two people cannot yet use it on two devices.
 - Verification, e-signature, calls and the care-manager hand-off are mocks. Prices are examples until a pilot is agreed.
-- Check-in photos are previewed in the browser only; the prototype records just that a photo was attached.
+- Check-in photos are shrunk to a small JPEG and kept in this browser only; voice notes record their length, not audio. Both are deleted after 30 days unless the coordinator keeps them as evidence.
 - Referral buttons on the coordinator desk only record the action and time; nothing is sent.
 - Response deadlines skip weekends but not Japanese public holidays.
 - The page language is shared by every view on one device: switch the language when switching between Mrs Sato and Aisyah in a demo.

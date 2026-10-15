@@ -87,6 +87,7 @@ scripts/check-i18n.mjs
 - **Safeguarding**: each case has a checklist (met the host alone, references, home safety check) that must be complete before the Sato agreement can be approved. **Pause the arrangement** puts tasks on hold and shows a notice to both sides.
 - **Family contact**: "Contact the coordinator" on the family view sends a message that lands on the desk under the Sato case.
 - **Escalation ladder** (6 steps): nudge, coordinator call, written warning, mediated meeting, pre-agreed end, removal from Tomoni. "Switch to standard rent" is left out until a labour lawyer has reviewed it.
+- **Check-in photo and voice note**: the coordinator always sees them. Emi sees them only when Mrs Sato ticks **Also share with Emi** for that week (off by default). Aisyah never does. They are deleted after 30 days unless the coordinator ticks **Keep as evidence**.
 - **Family summary**: "This week in brief" on the family view is a template built only from check-ins, confirmed hours and plans. It never uses message content.
 - **Text size** (A / A+ / A++) is in the header for hosts and family.
 - **Japanese and English** cover every string. Messages are shown in the viewer's language with the original beneath and an "AI-assisted" label.

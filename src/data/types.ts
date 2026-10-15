@@ -108,6 +108,25 @@ export interface CoordMessage {
   when: string
 }
 
+/** One weekly check-in. Photo and voice go to the coordinator; family only when the host shares them. */
+export interface CheckinEntry {
+  week: number
+  status: CheckinStatus
+  /** Length of the voice note in seconds (the prototype records no audio). */
+  voiceSecs?: number
+  /** Small JPEG data URL of the optional photo. */
+  photoData?: string
+  /** The host chose to share this week's photo / voice note with family. */
+  shareFamily?: boolean
+  /** ISO time the check-in was sent; media is deleted after RULES.mediaDays. */
+  at?: string
+  /** Media was deleted by the retention rule. */
+  mediaDeleted?: boolean
+  /** Older saved data only. */
+  voice?: boolean
+  photo?: boolean
+}
+
 export type ReferralKind = 'family' | 'careManager' | 'municipal' | 'police'
 export type SafeguardKey = 'metAlone' | 'refs' | 'homeCheck'
 

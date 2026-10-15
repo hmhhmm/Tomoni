@@ -25,6 +25,8 @@ import { AishaHome, Forward, PersonaScope } from './lib/paths'
 
 export default function App() {
   const lang = useStore((s) => s.lang)
+  // Check-in photos and voice notes are deleted after RULES.mediaDays (unless kept as evidence).
+  useEffect(() => useStore.getState().pruneMedia(), [])
   useEffect(() => {
     document.documentElement.lang = lang
     i18n.changeLanguage(lang)

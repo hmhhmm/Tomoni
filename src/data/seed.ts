@@ -1,18 +1,4 @@
-import type {
-  Applicant,
-  CaseRow,
-  CheckinStatus,
-  CoordMessage,
-  Flag,
-  HelpId,
-  Helps,
-  Listing,
-  ListingDraft,
-  Message,
-  Slot,
-  TaskEntry,
-  TenantProfile,
-} from './types'
+import type { Applicant, CaseRow, CheckinEntry, CheckinStatus, CoordMessage, Flag, HelpId, Helps, Listing, ListingDraft, Message, Slot, TaskEntry, TenantProfile } from './types'
 import { SATO_HUE } from '../tokens'
 
 export const HELP_ORDER: HelpId[] = ['groceries', 'garden', 'cooking', 'company', 'walks', 'parcels']
@@ -518,9 +504,10 @@ export const livingTasks = (): TaskEntry[] => [
   { id: 't1', help: 'groceries', hours: 2, date: daysAgo(2), status: 'confirmed' },
   { id: 't2', help: 'garden', hours: 1, date: daysAgo(1), status: 'confirmed' },
 ]
-export const livingCheckins = (): { week: number; status: CheckinStatus }[] => [
-  { week: 1, status: 'good' },
-  { week: 2, status: 'good' },
+export const livingCheckins = (): CheckinEntry[] => [
+  { week: 1, status: 'good', at: daysAgo(15) },
+  // Week 2: Mrs Sato added a short voice note and chose to share it with Emi.
+  { week: 2, status: 'good', at: daysAgo(8), voiceSecs: 14, shareFamily: true },
   { week: 3, status: 'pending' },
 ]
 export { daysAgo }

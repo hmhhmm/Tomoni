@@ -7,18 +7,22 @@ import { Button, LinkButton } from '../../components/ui/Button'
 import { Chip } from '../../components/ui/Chip'
 import { useStore } from '../../store'
 import { StayTabs } from '../../components/domain/StayTabs'
+import { downscale } from '../../lib/image'
+import { RULES } from '../../tokens'
 
 export function CheckIn() {
   const { t } = useTranslation()
   const nav = useNavigate()
-  const { checkins, submitCheckin, match } = useStore()
+  const { checkins, submitCheckin, match, familyConsent } = useStore()
+  // Off by default: Emi sees this week's photo / voice note only if Mrs Sato turns sharing on.
+  const [share, setShare] = useState(false)
   const pending = checkins.find((c) => c.status === 'pending')
   const last = [...checkins].reverse().find((c) => c.status !== 'pending')
   const [rec, setRec] = useState<'idle' | 'recording' | 'done'>('idle')
   const [secs, setSecs] = useState(0)
   const [choice, setChoice] = useState<'good' | 'notgood' | null>(null)
-  // Optional photo: previewed in the browser only; the prototype keeps just "a photo was attached".
-  const [photo, setPhoto] = useState<{ url: string; name: string } | null>(null)
+  // Optional photo: previewed from the file, and stored as a small JPEG for the coordinator (and Emi if shared).
+  const [photo, setPhoto] = useState<{ url: string; name: string; data?: string } | null>(null)
   useEffect(() => () => (photo ? URL.revokeObjectURL(photo.url) : undefined), [photo])
 
   useEffect(() => {
@@ -142,16 +146,42 @@ export function CheckIn() {
                     className="sr-only"
                     onChange={(e) => {
                       const f = e.target.files?.[0]
-                      if (f) setPhoto({ url: URL.createObjectURL(f), name: f.name })
+                      if (f) {
+                        const url = URL.createObjectURL(f)
+                        setPhoto({ url, name: f.name })
+                        downscale(f)
+                          .then((data) => setPhoto((p) => (p && p.url === url ? { ...p, data } : p)))
+                          .catch(() => undefined)
+                      }
                       e.target.value = ''
                     }}
                   />
                 </label>
               )}
-              <p className="mt-3 flex items-start gap-2 text-sm text-muted">
-                <Lock size={14} aria-hidden className="mt-0.5 shrink-0" />
-                {t('checkin.photoPrivacy')}
+            </div>
+
+            <div className="rounded-card border border-line bg-surface p-5">
+              <p className="flex items-start gap-2 text-base">
+                <Lock size={16} aria-hidden className="mt-1 shrink-0 text-muted" />
+                {t('checkin.whoSees', { days: RULES.mediaDays })}
               </p>
+              {familyConsent && (
+                <label className="mt-3 flex cursor-pointer items-start gap-3 text-base">
+                  <input
+                    type="checkbox"
+                    checked={share}
+                    disabled={!photo && rec !== 'done'}
+                    onChange={(e) => setShare(e.target.checked)}
+                    className="mt-1 h-5 w-5 accent-ink"
+                  />
+                  <span>
+                    <span className="block font-semibold">{t('checkin.shareFamily', { name: t('names.emi') })}</span>
+                    <span className="block text-sm text-muted">
+                      {!photo && rec !== 'done' ? t('checkin.shareNothing') : t('checkin.shareHint', { name: t('names.emi') })}
+                    </span>
+                  </span>
+                </label>
+              )}
             </div>
 
             <div className="flex">
@@ -160,10 +190,11 @@ export function CheckIn() {
                 size="lg"
                 disabled={!choice}
                 onClick={() => {
-                  submitCheckin(choice!, rec === 'done', !!photo)
+                  submitCheckin(choice!, { voiceSecs: rec === 'done' ? Math.max(1, secs) : undefined, photoData: photo?.data, shareFamily: share })
                   setChoice(null)
                   setRec('idle')
                   setPhoto(null)
+                  setShare(false)
                 }}
               >
                 {t('checkin.submit')}

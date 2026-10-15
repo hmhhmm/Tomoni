@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, CalendarDays, Check, EyeOff, Hourglass, Lock, NotebookText, Phone, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { AlertTriangle, CalendarDays, Check, EyeOff, Hourglass, Lock, Mic, NotebookText, Phone, Send, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { Page, Notice, FictionalTag } from '../../components/domain/Bits'
 import { Avatar } from '../../components/ui/Avatar'
 import { Button } from '../../components/ui/Button'
@@ -114,6 +114,8 @@ export function FamilyDashboard() {
   const fmt = (d: Date) => formatDayTime(d, lang)
   // Regular help from the agreement, with its usual time (companionship-only stays have none).
   const agreed = agreedHelps({ pactHelps, declined })
+  // Only check-ins Mrs Sato chose to share, newest first (photo / voice note still within the retention period).
+  const shared = checkins.filter((c) => c.shareFamily && (c.photoData || c.voiceSecs)).reverse()
   const regular = hasStay ? HELP_ORDER.filter((h) => agreed[h]).map((h) => ({ id: h, slot: agreed[h]!.slot })) : []
 
   // Weekly summary: built only from check-ins, confirmed hours and plans. Never from messages.
@@ -183,6 +185,31 @@ export function FamilyDashboard() {
           </section>
         </div>
       </div>
+
+      {shared.length > 0 && (
+        <section aria-labelledby="shared-title" className="mt-6 rounded-card border border-line p-6">
+          <h2 id="shared-title" className="text-lg font-semibold">
+            {t('family.shared.title', { host: t('names.sato') })}
+          </h2>
+          <ul className="mt-3 grid gap-4 sm:grid-cols-2">
+            {shared.map((c) => (
+              <li key={c.week} className="rounded-card bg-surface p-4">
+                <p className="text-sm font-semibold text-muted">{t('family.week', { n: c.week })}</p>
+                {c.photoData && (
+                  <img src={c.photoData} alt={t('family.shared.photoAlt', { n: c.week })} className="mt-2 max-h-56 w-full rounded-card object-cover" />
+                )}
+                {!!c.voiceSecs && (
+                  <p className="mt-2 flex items-center gap-2 text-base">
+                    <Mic size={18} aria-hidden className="text-muted" />
+                    {t('family.shared.voice', { time: `0:${String(c.voiceSecs).padStart(2, '0')}` })}
+                    <span className="text-sm text-muted">{t('family.shared.noAudio')}</span>
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {hasStay && (
         <section aria-labelledby="sum-title" className="mt-6 rounded-card border border-line p-6">
