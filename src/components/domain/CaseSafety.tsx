@@ -4,9 +4,13 @@ import { Check, LockKeyhole, PauseCircle, PlayCircle, Send, ShieldCheck } from '
 import { Button } from '../ui/Button'
 import { SAFEGUARD_KEYS, useStore } from '../../store'
 import { useL } from '../../lib/hooks'
-import type { CoordMessage, ReferralKind } from '../../data/types'
+import type { CoordMessage, ReferralKind, SafeguardKey } from '../../data/types'
 
 // Routine first, then the two escalations (shown in the danger style).
+// Stable empty values: a selector returning a new {} or [] each call makes React re-render forever.
+const NO_CHECKS: Partial<Record<SafeguardKey, boolean>> = {}
+const NO_REFERRALS: { kind: ReferralKind; when: string }[] = []
+
 const REFERRALS: ReferralKind[] = ['family', 'careManager', 'municipal', 'police']
 
 /** Shown to host and housemate while the coordinator has paused the live case. */
@@ -28,7 +32,7 @@ export function PausedNotice() {
 /** Safeguarding checklist and pause switch for one case (IDEA.md §3.3, Autonomy). */
 export function SafeguardPanel({ caseId }: { caseId: string }) {
   const { t } = useTranslation()
-  const done = useStore((s) => s.safeguards[caseId] ?? {})
+  const done = useStore((s) => s.safeguards[caseId] ?? NO_CHECKS)
   const paused = useStore((s) => !!s.paused[caseId])
   const toggle = useStore((s) => s.toggleSafeguard)
   const setPaused = useStore((s) => s.setPaused)
@@ -66,7 +70,7 @@ export function SafeguardPanel({ caseId }: { caseId: string }) {
 /** One-tap onward referrals; each is logged with the time (IDEA.md §3.2(c)). */
 export function ReferralPanel({ caseId }: { caseId: string }) {
   const { t } = useTranslation()
-  const log = useStore((s) => s.referrals[caseId] ?? [])
+  const log = useStore((s) => s.referrals[caseId] ?? NO_REFERRALS)
   const add = useStore((s) => s.addReferral)
   // Family can only be informed with the host's consent (the live case uses the real consent).
   const familyOk = useStore((s) => (caseId === 'c1' ? s.familyConsent : true))
