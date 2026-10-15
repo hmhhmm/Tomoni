@@ -41,9 +41,10 @@ export function Agreement() {
 
   if (match.stage === 'none' || (viewer === 'tenant' && match.applicantId !== 'a1')) {
     return (
-      <Page narrow className="py-10">
+      <Page className="py-8">
         <StayTabs />
         <EmptyState
+          align="left"
           icon={<FileSignature size={26} aria-hidden />}
           title={t('pact.emptyTitle')}
           body={t('pact.emptyBody')}

@@ -58,9 +58,24 @@ export function Notice({
   )
 }
 
-export function EmptyState({ icon, title, body, action }: { icon: ReactNode; title: string; body?: string; action?: ReactNode }) {
+/** `align="left"` sits at the start of a wide page (the Stay tabs), instead of centred in a narrow one. */
+export function EmptyState({
+  icon,
+  title,
+  body,
+  action,
+  align = 'center',
+}: {
+  icon: ReactNode
+  title: string
+  body?: string
+  action?: ReactNode
+  align?: 'center' | 'left'
+}) {
   return (
-    <div className="mx-auto flex max-w-md flex-col items-center rounded-card border border-dashed border-line px-6 py-12 text-center">
+    <div
+      className={`flex max-w-md flex-col rounded-card border border-dashed border-line px-6 py-12 ${align === 'left' ? 'items-start text-left' : 'mx-auto items-center text-center'}`}
+    >
       <div className="mb-3 grid h-14 w-14 place-items-center rounded-full bg-surface text-muted">{icon}</div>
       <h2 className="text-lg font-semibold">{title}</h2>
       {body && <p className="mt-1 text-base text-muted">{body}</p>}

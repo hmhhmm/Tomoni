@@ -38,9 +38,10 @@ export function Stay() {
   const visible = match.stage !== 'none' && a && (side === 'host' || a.id === 'a1')
   if (!visible) {
     return (
-      <Page narrow className="py-10">
+      <Page className="py-8">
         <StayTabs />
         <EmptyState
+          align="left"
           icon={<BedDouble size={26} aria-hidden />}
           title={t('stay.emptyTitle')}
           body={side === 'host' ? t('stay.emptyHost') : t('stay.emptyTenant')}

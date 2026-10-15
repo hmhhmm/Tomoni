@@ -32,9 +32,10 @@ export function CheckIn() {
 
   if (match.stage !== 'living') {
     return (
-      <Page narrow className="py-10">
+      <Page className="py-8">
         <StayTabs />
         <EmptyState
+          align="left"
           icon={<HeartPulse size={26} aria-hidden />}
           title={t('checkin.notYetTitle')}
           body={t('checkin.notYetBody')}
