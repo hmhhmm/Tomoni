@@ -4,7 +4,7 @@
  *
  * Structure follows Airbnb's restraint: near-black text on white, hairline borders,
  * ONE accent used sparingly (primary action, search button, saved heart, active tab).
- * Brand continuity with the pitch deck: purple #B9A2FF deepened to #7050F8 for text and
+ * Accent: Airbnb-style red (see `brand`). Earlier versions used the pitch deck's purple #B9A2FF / #7050F8 for text and
  * buttons (5.0:1 on white); teal #3CD0BD deepened to #0B7A6B for text (5.2:1).
  */
 export const colors = {
@@ -15,14 +15,6 @@ export const colors = {
   muted: '#6A6A6A',
   line: '#DDDDDD',
   soft: '#EBEBEB',
-  purple: {
-    50: '#F6F3FF',
-    100: '#ECE6FF',
-    200: '#B9A2FF',
-    500: '#7C5CFF',
-    600: '#7050F8',
-    700: '#5A3CE0',
-  },
   teal: {
     50: '#EAF8F5',
     100: '#CDF2EC',
@@ -33,10 +25,11 @@ export const colors = {
   amber: { 50: '#FFF6E5', 200: '#F6D58E', 700: '#8A5300' },
   rose: { 50: '#FFF0F0', 200: '#F5B5B5', 700: '#B3261E' },
   /**
-   * Button red, after Airbnb's "Rausch". 500 is the logo red, fills only: white text on it is 3.5:1.
-   * Buttons use the 400 → 600 → 700 gradient, where every stop reaches at least 4.5:1 with white text.
+   * Brand red, after Airbnb's "Rausch". It replaced the original purple accent.
+   * 500 is the logo red, fills only (white text on it is 3.5:1). 600 and 700 pass AA as text on white
+   * and with white text (4.6:1 and 5.1:1); buttons use the 400 -> 600 -> 700 gradient.
    */
-  rausch: { 50: '#FFF0F3', 100: '#FFE1E7', 400: '#E61E4D', 500: '#FF385C', 600: '#E31C5F', 700: '#D70466' },
+  brand: { 50: '#FFF0F3', 100: '#FFE1E7', 200: '#FFB3C1', 400: '#E61E4D', 500: '#FF385C', 600: '#E31C5F', 700: '#D70466' },
 } as const
 
 export const radius = { chip: '999px', card: '16px', sheet: '20px', input: '12px', btn: '10px' } as const

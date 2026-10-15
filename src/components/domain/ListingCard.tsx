@@ -50,7 +50,7 @@ export function ListingCard({ l, highlight = false }: { l: Listing; highlight?: 
           aria-label={saved ? t('card.unsave', { name: text(l.hostName) }) : t('card.save', { name: text(l.hostName) })}
           className="absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full transition hover:scale-110"
         >
-          <Heart size={24} aria-hidden className={saved ? 'fill-purple-600 text-purple-600' : 'fill-black/40 text-white'} strokeWidth={2} />
+          <Heart size={24} aria-hidden className={saved ? 'fill-brand-600 text-brand-600' : 'fill-black/40 text-white'} strokeWidth={2} />
         </button>
         {i > 0 && (
           <button

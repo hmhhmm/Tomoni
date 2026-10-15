@@ -3,10 +3,10 @@ import { Link, type LinkProps } from 'react-router-dom'
 
 const variants = {
   // Airbnb-style red. Gradient stops all keep white text at 4.5:1 or better.
-  primary: 'bg-gradient-to-r from-rausch-400 via-rausch-600 to-rausch-700 text-white hover:brightness-95',
-  dark: 'bg-rausch-600 text-white hover:bg-rausch-700',
+  primary: 'bg-gradient-to-r from-brand-400 via-brand-600 to-brand-700 text-white hover:brightness-95',
+  dark: 'bg-brand-600 text-white hover:bg-brand-700',
   secondary: 'border border-ink bg-white text-ink hover:bg-surface',
-  soft: 'bg-rausch-50 text-rausch-700 hover:bg-rausch-100',
+  soft: 'bg-brand-50 text-brand-700 hover:bg-brand-100',
   ghost: 'text-ink underline-offset-4 hover:underline',
   danger: 'bg-rose-700 text-white hover:opacity-90',
   teal: 'bg-teal-700 text-white hover:opacity-90',

@@ -247,7 +247,7 @@ export function Messages() {
             </div>
             {coordUnreadN > 0 && (
               <span
-                className="grid h-5 min-w-5 place-items-center rounded-full bg-purple-600 px-1.5 text-xs font-bold text-white"
+                className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs font-bold text-white"
                 aria-label={t('nav.unread', { n: coordUnreadN })}
               >
                 {coordUnreadN}
@@ -284,7 +284,7 @@ export function Messages() {
                   </div>
                   {n > 0 && (
                     <span
-                      className="grid h-5 min-w-5 place-items-center rounded-full bg-purple-600 px-1.5 text-xs font-bold text-white"
+                      className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs font-bold text-white"
                       aria-label={t('nav.unread', { n })}
                     >
                       {n}
@@ -363,7 +363,7 @@ export function Messages() {
                 </LinkButton>
               )}
             </div>
-            <p className="bg-purple-50 px-4 py-2 text-sm text-purple-700 lg:px-6">
+            <p className="bg-brand-50 px-4 py-2 text-sm text-brand-700 lg:px-6">
               {t('chat.banner', { you: t(`lang.${viewerLang}`), them: t(`lang.${viewerLang === 'ja' ? 'en' : 'ja'}`) })}
             </p>
 
@@ -401,9 +401,9 @@ export function Messages() {
 
             <div className="border-t border-soft bg-white px-4 py-3 lg:px-6">
               {side === 'host' && !rejected && !meetBooked && (
-                <div className="mb-3 flex flex-wrap items-center gap-3 rounded-card border border-purple-200 bg-purple-50 p-3">
-                  <CalendarPlus size={22} aria-hidden className="shrink-0 text-purple-700" />
-                  <p className="min-w-0 flex-1 text-sm text-purple-700">
+                <div className="mb-3 flex flex-wrap items-center gap-3 rounded-card border border-brand-200 bg-brand-50 p-3">
+                  <CalendarPlus size={22} aria-hidden className="shrink-0 text-brand-700" />
+                  <p className="min-w-0 flex-1 text-sm text-brand-700">
                     <strong className="block text-base">{t('chat.meetNudgeTitle')}</strong>
                     {t('chat.meetNudge', { name: applicant.name })}
                   </p>

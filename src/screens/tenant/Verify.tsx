@@ -43,7 +43,7 @@ export function Verify() {
         nextLabel={t('onb.browse')}
       >
         {tenant.residence === 'student' && tenant.workPermit && (
-          <Notice tone="purple" title={t('onb.trackerTitle')}>
+          <Notice tone="brand" title={t('onb.trackerTitle')}>
             {t('onb.trackerBody', { n: RULES.studentWeeklyLimit })}
           </Notice>
         )}
@@ -134,7 +134,7 @@ export function Verify() {
                 type="checkbox"
                 checked={tenant.workPermit}
                 onChange={(e) => patchTenant({ workPermit: e.target.checked })}
-                className="mt-1 h-5 w-5 accent-purple-600"
+                className="mt-1 h-5 w-5 accent-brand-600"
               />
               <span>
                 <span className="block font-semibold">{t('onb.permit')}</span>
@@ -151,7 +151,7 @@ export function Verify() {
             {scan === 0 && (
               <>
                 <div className="flex items-center gap-3">
-                  <IdCard size={32} aria-hidden className="text-purple-700" />
+                  <IdCard size={32} aria-hidden className="text-brand-700" />
                   <p className="text-base">{t('onb.idBody')}</p>
                 </div>
                 <ul className="mt-4 list-disc space-y-1 pl-5 text-sm text-muted">
@@ -164,7 +164,7 @@ export function Verify() {
                     type="checkbox"
                     checked={tenant.idConsent}
                     onChange={(e) => patchTenant({ idConsent: e.target.checked })}
-                    className="mt-1 h-5 w-5 accent-purple-600"
+                    className="mt-1 h-5 w-5 accent-brand-600"
                   />
                   <span>{t('onb.consent')}</span>
                 </label>

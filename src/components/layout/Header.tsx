@@ -182,12 +182,12 @@ export function Header() {
                   <Link
                     to={it.to}
                     aria-current={isActive(it) ? 'page' : undefined}
-                    className={`relative flex h-11 items-center gap-2 rounded-full px-[12px] text-[15px] transition-colors after:absolute after:inset-x-3 after:-bottom-[18px] after:h-[3px] after:rounded-full ${isActive(it) ? 'font-semibold text-ink after:bg-purple-600' : 'font-medium text-muted hover:text-ink after:bg-transparent hover:after:bg-line'}`}
+                    className={`relative flex h-11 items-center gap-2 rounded-full px-[12px] text-[15px] transition-colors after:absolute after:inset-x-3 after:-bottom-[18px] after:h-[3px] after:rounded-full ${isActive(it) ? 'font-semibold text-ink after:bg-brand-600' : 'font-medium text-muted hover:text-ink after:bg-transparent hover:after:bg-line'}`}
                   >
                     <span>{t(it.key)}</span>
                     {!!it.badge && (
                       <span
-                        className="grid h-5 min-w-5 place-items-center rounded-full bg-purple-600 px-1.5 text-xs font-bold text-white"
+                        className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs font-bold text-white"
                         aria-label={t('nav.unread', { n: it.badge })}
                       >
                         {it.badge}

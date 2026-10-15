@@ -51,7 +51,7 @@ export function Landing() {
       <section aria-labelledby="hero-title">
         <Page className="grid items-center gap-10 pb-14 pt-8 sm:pt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:pb-20 lg:pt-16">
           <div className="min-w-0">
-            <motion.p {...rise(0)} className="mb-3 text-base font-semibold text-rausch-700">
+            <motion.p {...rise(0)} className="mb-3 text-base font-semibold text-brand-700">
               {t('landing.kicker')}
             </motion.p>
             <motion.h1

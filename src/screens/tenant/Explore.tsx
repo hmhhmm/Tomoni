@@ -230,7 +230,7 @@ export function Explore() {
               <button
                 type="submit"
                 aria-label={t('explore.searchBtn')}
-                className="m-1.5 grid h-12 w-12 shrink-0 place-items-center self-center justify-self-end rounded-full bg-gradient-to-r from-rausch-400 via-rausch-600 to-rausch-700 text-white transition hover:brightness-95"
+                className="m-1.5 grid h-12 w-12 shrink-0 place-items-center self-center justify-self-end rounded-full bg-gradient-to-r from-brand-400 via-brand-600 to-brand-700 text-white transition hover:brightness-95"
               >
                 <Search size={20} aria-hidden />
                 <span className="sr-only">{t('explore.searchBtn')}</span>
@@ -289,7 +289,7 @@ export function Explore() {
               variant={savedOnly ? 'soft' : 'secondary'}
               size="sm"
               aria-pressed={savedOnly}
-              icon={<Heart size={16} aria-hidden className={savedOnly ? 'fill-purple-600 text-purple-600' : ''} />}
+              icon={<Heart size={16} aria-hidden className={savedOnly ? 'fill-brand-600 text-brand-600' : ''} />}
               onClick={() => f.set({ saved: savedOnly ? null : '1' })}
             >
               {savedOnly ? t('saved.showAll') : t('saved.button', { n: saved.length })}

@@ -124,7 +124,7 @@ export function HelpPicker() {
             ))}
           </ul>
         </section>
-        <Notice tone="purple" title={t('help.hostDecides')}>
+        <Notice tone="brand" title={t('help.hostDecides')}>
           {t('help.hostDecidesBody')}
         </Notice>
       </div>

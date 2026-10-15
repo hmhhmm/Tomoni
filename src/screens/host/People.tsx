@@ -65,7 +65,7 @@ export function People() {
                 className={`group flex h-full w-full flex-col rounded-card border border-line p-5 text-left transition hover:border-ink hover:shadow-lift ${a.status === 'declined' ? 'opacity-70' : ''}`}
               >
                 <Summary a={a} f={f} unreadN={unread.host[a.id] ?? 0} />
-                <span className="mt-auto flex items-center gap-1 border-t border-soft pt-4 text-base font-semibold text-purple-700">
+                <span className="mt-auto flex items-center gap-1 border-t border-soft pt-4 text-base font-semibold text-brand-700">
                   {t('people.viewProfile')}
                   <ChevronRight size={18} aria-hidden className="transition group-hover:translate-x-0.5" />
                 </span>
@@ -105,7 +105,7 @@ function Summary({ a, f, unreadN }: { a: Applicant; f: Fit; unreadN: number }) {
             <VerifiedBadge verified={a.verified} />
             <FictionalTag />
             {a.status === 'declined' && <Chip tone="rose">{t('people.rejected')}</Chip>}
-            {unreadN > 0 && a.status !== 'declined' ? <Chip tone="purple">{t('people.newMsg')}</Chip> : null}
+            {unreadN > 0 && a.status !== 'declined' ? <Chip tone="brand">{t('people.newMsg')}</Chip> : null}
           </div>
         </div>
       </div>

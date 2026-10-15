@@ -112,7 +112,7 @@ export function ListingDetail() {
           onClick={() => toggleSaved(l.id)}
           className="mt-9 flex h-11 items-center gap-2 rounded-lg px-3 text-base font-semibold underline-offset-4 hover:bg-surface"
         >
-          <Heart size={20} aria-hidden className={isSaved ? 'fill-purple-600 text-purple-600' : ''} />
+          <Heart size={20} aria-hidden className={isSaved ? 'fill-brand-600 text-brand-600' : ''} />
           {isSaved ? t('detail.saved') : t('detail.save')}
         </button>
       </div>
@@ -386,7 +386,7 @@ export function ListingDetail() {
         <Textarea id="intro" rows={5} value={intro} onChange={(e) => setIntro(e.target.value)} />
         <p className="mt-1.5 text-sm text-muted">{t('detail.introHint')}</p>
         <label className="mt-5 flex cursor-pointer items-start gap-3 text-base">
-          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-1 h-5 w-5 accent-purple-600" />
+          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-1 h-5 w-5 accent-brand-600" />
           <span>{t('detail.agree', { cap: RULES.weeklyHourCap })}</span>
         </label>
       </Modal>

@@ -29,12 +29,12 @@ import type { CaseRow, CheckinStatus, Flag as FlagT } from '../data/types'
 import { SEED_PULSES } from '../data/seed'
 import { hoursLeft, isSafety } from '../lib/sla'
 
-const TONE = { healthy: 'teal', trial: 'purple', review: 'purple', attention: 'amber', alert: 'rose', paused: 'amber' } as const
+const TONE = { healthy: 'teal', trial: 'brand', review: 'brand', attention: 'amber', alert: 'rose', paused: 'amber' } as const
 /** Detail banner colour follows the case status. */
 const BANNER = {
   healthy: 'border-teal-100 bg-teal-50',
-  trial: 'border-purple-100 bg-purple-50',
-  review: 'border-purple-100 bg-purple-50',
+  trial: 'border-brand-100 bg-brand-50',
+  review: 'border-brand-100 bg-brand-50',
   attention: 'border-amber-200 bg-amber-50',
   alert: 'border-rose-200 bg-rose-50',
   paused: 'border-amber-200 bg-amber-50',
@@ -176,7 +176,7 @@ export function Coordinator() {
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
           <div className="flex items-center gap-3">
             <Wordmark />
-            <Chip tone="purple">{t('coord.concept')}</Chip>
+            <Chip tone="brand">{t('coord.concept')}</Chip>
           </div>
           <div className="flex items-center gap-2">
             <LangSelect />
@@ -271,7 +271,7 @@ export function Coordinator() {
                       <p className="text-base font-medium">{t(`pulse.${q}`)}</p>
                       <div className="mt-1 flex h-3 overflow-hidden rounded-full bg-soft" aria-hidden>
                         <span className="bg-teal-500" style={{ width: `${(n('great') / pulses.length) * 100}%` }} />
-                        <span className="bg-purple-200" style={{ width: `${(n('fine') / pulses.length) * 100}%` }} />
+                        <span className="bg-brand-200" style={{ width: `${(n('fine') / pulses.length) * 100}%` }} />
                         <span className="bg-amber-700" style={{ width: `${(n('notgreat') / pulses.length) * 100}%` }} />
                       </div>
                       <p className="mt-1 text-sm text-muted">

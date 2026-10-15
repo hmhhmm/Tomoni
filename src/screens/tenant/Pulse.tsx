@@ -21,7 +21,7 @@ export function Pulse() {
       <h1 className="text-[1.75rem] font-semibold">{t('pulse.title')}</h1>
       <p className="mt-1 text-base text-muted">{t('pulse.lede')}</p>
       <div className="mt-6 space-y-4">
-        <Notice tone="purple" icon={<EyeOff size={20} aria-hidden className="text-purple-700" />} title={t('pulse.anon')}>
+        <Notice tone="brand" icon={<EyeOff size={20} aria-hidden className="text-brand-700" />} title={t('pulse.anon')}>
           {t('pulse.anonBody')}
         </Notice>
         {pulse ? (

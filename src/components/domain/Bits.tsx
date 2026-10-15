@@ -28,20 +28,20 @@ export function VerifiedBadge({ verified = true }: { verified?: boolean }) {
 }
 
 export function Notice({
-  tone = 'purple',
+  tone = 'brand',
   icon,
   title,
   children,
   live,
 }: {
-  tone?: 'purple' | 'amber' | 'rose' | 'teal' | 'neutral'
+  tone?: 'brand' | 'amber' | 'rose' | 'teal' | 'neutral'
   icon?: ReactNode
   title?: string
   children?: ReactNode
   live?: boolean
 }) {
   const tones = {
-    purple: 'bg-purple-50 border-purple-100',
+    brand: 'bg-brand-50 border-brand-100',
     amber: 'bg-amber-50 border-amber-200',
     rose: 'bg-rose-50 border-rose-200',
     teal: 'bg-teal-50 border-teal-100',

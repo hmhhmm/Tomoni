@@ -29,14 +29,14 @@ const TINT: Record<HelpId, { tile: string; icon: string; pill: string }> = {
     pill: 'bg-teal-50 text-teal-700 ring-teal-100 hover:bg-teal-100',
   },
   cooking: {
-    tile: 'hover:border-purple-100 hover:bg-purple-50',
-    icon: 'bg-purple-50 text-purple-700',
-    pill: 'bg-purple-50 text-purple-700 ring-purple-100 hover:bg-purple-100',
+    tile: 'hover:border-brand-100 hover:bg-brand-50',
+    icon: 'bg-brand-50 text-brand-700',
+    pill: 'bg-brand-50 text-brand-700 ring-brand-100 hover:bg-brand-100',
   },
   company: {
-    tile: 'hover:border-purple-100 hover:bg-purple-50',
-    icon: 'bg-purple-100 text-purple-700',
-    pill: 'bg-purple-50 text-purple-700 ring-purple-100 hover:bg-purple-100',
+    tile: 'hover:border-brand-100 hover:bg-brand-50',
+    icon: 'bg-brand-100 text-brand-700',
+    pill: 'bg-brand-50 text-brand-700 ring-brand-100 hover:bg-brand-100',
   },
   walks: {
     tile: 'hover:border-teal-100 hover:bg-teal-50',
@@ -200,7 +200,7 @@ export function Log() {
         </section>
 
         {/* 2. This week at a glance */}
-        <section className="rounded-sheet bg-gradient-to-br from-purple-50 to-teal-50 p-6">
+        <section className="rounded-sheet bg-gradient-to-br from-brand-50 to-teal-50 p-6">
           <h2 className="text-lg font-semibold">{t('log.thisWeek')}</h2>
           <div className="mt-4 flex items-center gap-5">
             <HourMeter variant="ring" value={all} size={120} label={t('meter.week')} />
@@ -209,7 +209,7 @@ export function Log() {
                 {t('log.confirmedChip', { n: done })}
               </Chip>
               {pendingH > 0 && (
-                <Chip tone="purple" icon={<Clock size={14} aria-hidden />}>
+                <Chip tone="brand" icon={<Clock size={14} aria-hidden />}>
                   {t('log.waitingChip', { n: pendingH })}
                 </Chip>
               )}
@@ -223,7 +223,7 @@ export function Log() {
                   {d.toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-GB', { weekday: 'narrow' })}
                 </span>
                 <span
-                  className={`grid h-9 w-9 place-items-center rounded-full text-xs font-semibold tabular-nums ${entries.length ? 'bg-purple-600 text-white' : today ? 'bg-white ring-2 ring-purple-600' : 'bg-white/70 text-muted'}`}
+                  className={`grid h-9 w-9 place-items-center rounded-full text-xs font-semibold tabular-nums ${entries.length ? 'bg-brand-600 text-white' : today ? 'bg-white ring-2 ring-brand-600' : 'bg-white/70 text-muted'}`}
                   title={entries.map((x) => `${t(`help.${x.help}.title`)} ${x.hours} h`).join(', ')}
                 >
                   {entries.length ? entries.reduce((a, x) => a + x.hours, 0) : d.getDate()}
@@ -259,7 +259,7 @@ export function Log() {
                       {t('log.statusDone')}
                     </Chip>
                   ) : (
-                    <Chip tone="purple" icon={<Clock size={14} aria-hidden />}>
+                    <Chip tone="brand" icon={<Clock size={14} aria-hidden />}>
                       {t('log.statusWait', { name: t('names.sato') })}
                     </Chip>
                   )}

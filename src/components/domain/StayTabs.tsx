@@ -24,7 +24,7 @@ export function StayTabs() {
               <NavLink
                 to={tab.to}
                 className={({ isActive }) =>
-                  `flex h-12 items-center gap-2 border-b-[3px] px-3 text-base transition-colors ${isActive ? 'border-purple-600 font-semibold text-ink' : 'border-transparent font-medium text-muted hover:border-line hover:text-ink'}`
+                  `flex h-12 items-center gap-2 border-b-[3px] px-3 text-base transition-colors ${isActive ? 'border-brand-600 font-semibold text-ink' : 'border-transparent font-medium text-muted hover:border-line hover:text-ink'}`
                 }
               >
                 <tab.icon size={18} aria-hidden />
