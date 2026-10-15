@@ -68,7 +68,7 @@ export function Landing() {
               <Button size="lg" onClick={() => go('host', '/host')} icon={<HandHeart size={20} aria-hidden />}>
                 {t('landing.host')}
               </Button>
-              <Button size="lg" variant="secondary" onClick={() => go('tenant', '/explore')}>
+              <Button size="lg" variant="secondary" onClick={() => go('tenant', '/aisha/explore')}>
                 {t('landing.tenant')}
               </Button>
             </motion.div>
@@ -161,7 +161,7 @@ export function Landing() {
               <div className="mt-auto pt-6">
                 <Button
                   variant="secondary"
-                  onClick={() => go('tenant', '/explore')}
+                  onClick={() => go('tenant', '/aisha/explore')}
                   icon={<ArrowRight size={18} aria-hidden />}
                   className="flex-row-reverse"
                 >
@@ -212,7 +212,7 @@ export function Landing() {
               <FictionalTag />
             </div>
             <LinkButton
-              to="/explore"
+              to="/aisha/explore"
               variant="ghost"
               onClick={() => setPersona('tenant')}
               icon={<ArrowRight size={18} aria-hidden />}
