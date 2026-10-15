@@ -98,7 +98,7 @@ Each colour has one job, after Airbnb (red for the action that matters, black fo
 | Teal (`teal`) | Safety, and "done / all good" | Confirm task, Safety Centre, Call support, Send report |
 | Danger (`danger`) and rose text | Serious or irreversible | Refer to police, report to the municipal desk; Reject is a quiet rose text button |
 
-Explore's round search button stays red as the one exception: it is the signature search control, not a text button.
+Explore's round search button stays red as the one exception: it is the signature search control, not a text button. The header's Safety button is also red (white text): it is the always-visible way to get help, so it should stand out on every screen. The Safety Centre's own buttons stay teal.
 
 ## Type and size
 

@@ -40,7 +40,7 @@ export function People() {
 
       <div className="my-6 flex flex-wrap gap-2" role="group" aria-label={t('people.title')}>
         {(['all', 'new', 'chatting', 'declined'] as Filter[]).map((f) => (
-          <Pill key={f} selected={filter === f} onClick={() => setFilter(f)}>
+          <Pill key={f} look="outline" selected={filter === f} onClick={() => setFilter(f)}>
             {t(`people.f.${f}`)} <span className="opacity-70">{count(f)}</span>
           </Pill>
         ))}
@@ -94,7 +94,10 @@ function Summary({ a, f, unreadN }: { a: Applicant; f: Fit; unreadN: number }) {
             <h2 className="text-lg font-semibold leading-tight">
               {a.name}, {a.age}
             </h2>
-            <span className="shrink-0 rounded-full bg-ink px-2.5 py-1 text-sm font-semibold tabular-nums text-white" title={t('people.scoreTitle')}>
+            <span
+              className="shrink-0 rounded-full bg-white px-2.5 py-1 text-sm font-semibold tabular-nums text-brand-700 ring-1 ring-brand-200"
+              title={t('people.scoreTitle')}
+            >
               {t('people.match', { n: f.score })}
             </span>
           </div>

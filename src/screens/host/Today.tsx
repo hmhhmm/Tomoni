@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, CheckCircle2, ClipboardCheck, MessageCircle, Pencil, Users, HeartPulse, Clock } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ClipboardCheck, Pencil, Clock } from 'lucide-react'
 import { Page, FictionalTag, SectionTitle } from '../../components/domain/Bits'
 import { Avatar } from '../../components/ui/Avatar'
 import { Button, LinkButton } from '../../components/ui/Button'
@@ -20,15 +20,12 @@ export function HostToday() {
   const { t } = useTranslation()
   const text = useL()
   const nav = useNavigate()
-  const { draft, helps, applicants, match, tasks, confirmTask, checkins, unread, lang } = useStore()
+  const { draft, helps, applicants, match, tasks, confirmTask, lang } = useStore()
   const area = AREAS.find((a) => a.id === draft.areaId)!
   const c = costs(draft.standardRent, draft.homeshareRent, helps)
   const pending = tasks.filter((x) => x.status === 'pending')
-  const newApps = applicants.filter((a) => a.status === 'new')
-  const unreadN = Object.values(unread.host).reduce((a, b) => a + b, 0)
   const idx = stageIndex(match.stage)
   const partner = applicants.find((a) => a.id === match.applicantId)
-  const pendingCheckin = checkins.find((x) => x.status === 'pending')
   const hour = new Date().getHours()
   const greet = hour < 11 ? 'greet.morning' : hour < 17 ? 'greet.day' : 'greet.evening'
 
@@ -40,14 +37,6 @@ export function HostToday() {
     living: { label: t('today.next.living'), to: '/saito/checkin' },
     ended: { label: t('today.next.ended'), to: '/saito/people' },
   }[match.stage]
-
-  const todos = [
-    ...(newApps.length ? [{ icon: Users, title: t('today.todoApplicants', { count: newApps.length }), to: '/saito/people' }] : []),
-    ...(unreadN ? [{ icon: MessageCircle, title: t('today.todoMessages', { count: unreadN }), to: '/saito/messages' }] : []),
-    ...(match.stage === 'living' && pendingCheckin
-      ? [{ icon: HeartPulse, title: t('today.todoCheckin', { week: pendingCheckin.week }), to: '/saito/checkin' }]
-      : []),
-  ]
 
   return (
     <Page className="py-8">
@@ -124,30 +113,6 @@ export function HostToday() {
                 </Button>
               </div>
             </div>
-          </section>
-
-          <section>
-            <SectionTitle>{t('today.todo')}</SectionTitle>
-            {todos.length === 0 ? (
-              <p className="flex items-center gap-2 rounded-card border border-dashed border-line p-5 text-base text-muted">
-                <CheckCircle2 size={20} aria-hidden className="text-teal-700" />
-                {t('today.allDone')}
-              </p>
-            ) : (
-              <ul className="divide-y divide-soft rounded-card border border-line">
-                {todos.map((td) => (
-                  <li key={td.title} className="flex items-center gap-4 px-5 py-4">
-                    <td.icon size={22} aria-hidden />
-                    <span className="flex-1 text-base font-medium">{td.title}</span>
-                    {td.to && (
-                      <LinkButton to={td.to} variant="secondary" size="sm">
-                        {t('common.open')}
-                      </LinkButton>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
           </section>
         </div>
 

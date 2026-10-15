@@ -253,7 +253,7 @@ export function Header() {
 
           <Link
             to="/safety"
-            className="flex h-11 items-center gap-2 rounded-full bg-teal-50 px-[12px] text-[15px] font-semibold text-teal-700 ring-1 ring-teal-100 hover:bg-teal-100"
+            className="flex h-11 items-center gap-2 rounded-full bg-brand-600 px-[12px] text-[15px] font-semibold text-white hover:bg-brand-700"
             aria-label={t('safety.open')}
           >
             <ShieldAlert size={20} aria-hidden />
