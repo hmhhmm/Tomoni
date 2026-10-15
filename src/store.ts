@@ -39,6 +39,8 @@ interface Match {
   applicantId: string | null
   stage: Stage
   meetSlot: string | null
+  /** The housemate confirmed the booked meet-up from the chat. */
+  meetConfirmed?: boolean
   trialWeeks: number
   trialStart: string | null // ISO date
 }
@@ -58,7 +60,7 @@ interface Data {
   pactSigned: { host: boolean; tenant: boolean }
   /** A coordinator reviews the signed agreement before the stay starts. */
   pactApproved: boolean
-  checkins: { week: number; status: CheckinStatus; voice?: boolean }[]
+  checkins: { week: number; status: CheckinStatus; voice?: boolean; photo?: boolean }[]
   tasks: TaskEntry[]
   tenant: TenantProfile
   saved: string[]
@@ -91,6 +93,7 @@ interface Actions {
   startMeeting: (applicantId: string) => void
   bookMeet: (slot: string) => void
   clearMeet: () => void
+  confirmMeet: () => void
   startTrial: (weeks: number) => void
   endTrial: () => void
   resumeTrial: () => void
@@ -99,7 +102,7 @@ interface Actions {
   toggleDeclined: (id: HelpId) => void
   sign: (who: Side) => void
   approvePact: () => void
-  submitCheckin: (status: 'good' | 'notgood', voice: boolean) => void
+  submitCheckin: (status: 'good' | 'notgood', voice: boolean, photo?: boolean) => void
   logTask: (help: HelpId, hours: number) => 'ok' | 'cap' | 'student'
   confirmTask: (id: string) => void
   patchTenant: (p: Partial<TenantProfile>) => void
@@ -295,15 +298,36 @@ export const useStore = create<State>()(
       bookMeet: (meetSlot) =>
         set((s) => {
           const key = s.match.applicantId
-          if (!key) return { match: { ...s.match, meetSlot } }
+          if (!key) return { match: { ...s.match, meetSlot, meetConfirmed: false } }
           const notice: Message = { id: id('m'), from: 'host', origLang: 'ja', ja: '', en: '', when: nowLabel(), event: 'meet', meetSlot }
           return {
-            match: { ...s.match, meetSlot },
+            match: { ...s.match, meetSlot, meetConfirmed: false },
             threads: { ...s.threads, [key]: [...(s.threads[key] ?? []), notice] },
             unread: { ...s.unread, tenant: { ...s.unread.tenant, [key]: (s.unread.tenant[key] ?? 0) + 1 } },
           }
         }),
-      clearMeet: () => set((s) => ({ match: { ...s.match, meetSlot: null } })),
+      clearMeet: () => set((s) => ({ match: { ...s.match, meetSlot: null, meetConfirmed: false } })),
+      // The housemate confirms from the chat notice; the host sees it in the chat and on Stay.
+      confirmMeet: () =>
+        set((s) => {
+          const key = s.match.applicantId
+          if (!key || !s.match.meetSlot || s.match.meetConfirmed) return {}
+          const notice: Message = {
+            id: id('m'),
+            from: 'tenant',
+            origLang: 'en',
+            ja: '',
+            en: '',
+            when: nowLabel(),
+            event: 'meetConfirmed',
+            meetSlot: s.match.meetSlot,
+          }
+          return {
+            match: { ...s.match, meetConfirmed: true },
+            threads: { ...s.threads, [key]: [...(s.threads[key] ?? []), notice] },
+            unread: { ...s.unread, host: { ...s.unread.host, [key]: (s.unread.host[key] ?? 0) + 1 } },
+          }
+        }),
       startTrial: (trialWeeks) => set((s) => ({ match: { ...s.match, stage: 'trial', trialWeeks, trialStart: daysAgo(0) } })),
       endTrial: () => set((s) => ({ match: { ...s.match, stage: 'ended' } })),
       resumeTrial: () => set((s) => ({ match: { ...s.match, stage: 'trial' } })),
@@ -341,11 +365,11 @@ export const useStore = create<State>()(
             : {},
         ),
 
-      submitCheckin: (status, voice) => {
+      submitCheckin: (status, voice, photo = false) => {
         set((s) => {
           const list = s.checkins.map((c) => ({ ...c }))
           const i = list.findIndex((c) => c.status === 'pending')
-          if (i >= 0) list[i] = { ...list[i], status, voice }
+          if (i >= 0) list[i] = { ...list[i], status, voice, photo }
           return { checkins: list }
         })
         if (status === 'notgood') get().addFlag({ caseId: 'c1', kind: 'notgood', text: 'Weekly check-in: something is not right' })

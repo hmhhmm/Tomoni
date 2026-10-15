@@ -52,7 +52,7 @@ export function ListingDetail() {
     return (
       <Page className="py-16">
         <Notice tone="amber" title={t('detail.notFound')}>
-          <Link className="font-semibold underline" to="/explore">
+          <Link className="font-semibold underline" to="/aisha/explore">
             {t('detail.backToExplore')}
           </Link>
         </Notice>
@@ -83,7 +83,7 @@ export function ListingDetail() {
     apply(l.id, intro)
     setApplyOpen(false)
     say(t('detail.sent'))
-    nav(`/messages/${l.id}`)
+    nav(`/aisha/messages/${l.id}`)
   }
 
   const highlights = [
@@ -100,7 +100,7 @@ export function ListingDetail() {
     <Page className="pb-10 pt-6">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <Link to="/explore" className="mb-3 inline-flex items-center gap-1.5 text-base font-medium underline-offset-4 hover:underline">
+          <Link to="/aisha/explore" className="mb-3 inline-flex items-center gap-1.5 text-base font-medium underline-offset-4 hover:underline">
             <ArrowLeft size={18} aria-hidden />
             {t('common.back')}
           </Link>
@@ -313,7 +313,7 @@ export function ListingDetail() {
                     <Check size={18} aria-hidden />
                     {t(`detail.status.${app.status}`)}
                   </p>
-                  <LinkButton to={`/messages/${l.id}`} variant="dark" block icon={<MessageCircle size={18} aria-hidden />}>
+                  <LinkButton to={`/aisha/messages/${l.id}`} variant="dark" block icon={<MessageCircle size={18} aria-hidden />}>
                     {t('detail.openChat')}
                   </LinkButton>
                   {app.status !== 'declined' && (

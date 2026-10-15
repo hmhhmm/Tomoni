@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, BedDouble, CalendarCheck, DoorOpen, FileSignature, HandHeart, Undo2, Users, MapPin } from 'lucide-react'
+import { ArrowRight, BedDouble, CalendarCheck, DoorOpen, FileSignature, HandHeart, Pencil, Undo2, Users, MapPin } from 'lucide-react'
 import { Page, EmptyState, Notice, FictionalTag, VerifiedBadge } from '../components/domain/Bits'
 import { Avatar } from '../components/ui/Avatar'
 import { Button, LinkButton } from '../components/ui/Button'
 import { Pill } from '../components/ui/Chip'
+import { Modal } from '../components/ui/Modal'
 import { StepBar } from '../components/domain/StepBar'
 import { HourMeter } from '../components/domain/HourMeter'
 import { agreedHelps, useStore, trialDay } from '../store'
@@ -14,14 +15,18 @@ import { MEET_SLOTS, stageIndex } from '../data/journey'
 import { formatDayTime } from '../lib/format'
 import { useL, yen } from '../lib/hooks'
 import { StayTabs } from '../components/domain/StayTabs'
+import { usePath } from '../lib/paths'
 
 export function Stay() {
   const { t } = useTranslation()
+  const p = usePath()
   const text = useL()
   const nav = useNavigate()
   const { persona, lang, match, applicants, draft, pactHelps, declined, bookMeet, clearMeet, startTrial, endTrial, resumeTrial, goPact, pactSigned } =
     useStore()
   const [weeks, setWeeks] = useState(match.trialWeeks)
+  // Picking a time opens a confirmation; the host can still change the choice there, or edit it later.
+  const [draftSlot, setDraftSlot] = useState<string | null>(null)
   const side = persona === 'tenant' ? 'tenant' : 'host'
   const a = applicants.find((x) => x.id === match.applicantId)
   const c = costs(draft.standardRent, draft.homeshareRent, agreedHelps({ pactHelps, declined }))
@@ -38,7 +43,7 @@ export function Stay() {
           title={t('stay.emptyTitle')}
           body={side === 'host' ? t('stay.emptyHost') : t('stay.emptyTenant')}
           action={
-            <LinkButton to={side === 'host' ? '/host/people' : '/explore'} variant="dark">
+            <LinkButton to={side === 'host' ? '/host/people' : '/aisha/explore'} variant="dark">
               {side === 'host' ? t('nav.people') : t('nav.explore')}
             </LinkButton>
           }
@@ -77,7 +82,8 @@ export function Stay() {
                       <li key={s.id}>
                         <button
                           type="button"
-                          onClick={() => bookMeet(s.id)}
+                          onClick={() => (side === 'host' ? setDraftSlot(s.id) : undefined)}
+                          disabled={side !== 'host'}
                           className="flex w-full items-center gap-4 rounded-card border border-line p-4 text-left transition hover:border-ink"
                         >
                           <CalendarCheck size={22} aria-hidden />
@@ -94,7 +100,27 @@ export function Stay() {
               ) : (
                 <>
                   <Notice tone="teal" live icon={<CalendarCheck size={22} aria-hidden className="text-teal-700" />} title={t('stay.booked')}>
-                    {fmt(slot.date())} · {t(`stay.place.${slot.place}`)}
+                    <p>
+                      {fmt(slot.date())} · {t(`stay.place.${slot.place}`)}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold">
+                      {match.meetConfirmed
+                        ? t('stay.meetConfirmed', { name: side === 'host' ? a.name : t('stay.you') })
+                        : side === 'host'
+                          ? t('stay.meetWaiting', { name: a.name })
+                          : t('stay.meetConfirmInChat')}
+                    </p>
+                    {side === 'host' && (
+                      <Button
+                        className="mt-3"
+                        size="sm"
+                        variant="secondary"
+                        icon={<Pencil size={16} aria-hidden />}
+                        onClick={() => setDraftSlot(slot.id)}
+                      >
+                        {t('stay.editMeet')}
+                      </Button>
+                    )}
                   </Notice>
                   <div className="mt-6 border-t border-soft pt-6">
                     <h2 className="text-xl font-semibold">{t('stay.startTitle')}</h2>
@@ -148,7 +174,7 @@ export function Stay() {
                     icon={<FileSignature size={18} aria-hidden />}
                     onClick={() => {
                       goPact()
-                      nav('/agreement')
+                      nav(p('/agreement'))
                     }}
                   >
                     {t('stay.toPact')}
@@ -168,7 +194,7 @@ export function Stay() {
             <section className="rounded-card border border-line p-6">
               <h2 className="text-xl font-semibold">{t('stay.pactTitle')}</h2>
               <p className="mt-1 text-base text-muted">{t('stay.pactBody', { n: Number(pactSigned.host) + Number(pactSigned.tenant) })}</p>
-              <LinkButton to="/agreement" variant="dark" size="lg" className="mt-5" icon={<ArrowRight size={18} aria-hidden />}>
+              <LinkButton to={p('/agreement')} variant="dark" size="lg" className="mt-5" icon={<ArrowRight size={18} aria-hidden />}>
                 {t('stay.openPact')}
               </LinkButton>
             </section>
@@ -182,10 +208,10 @@ export function Stay() {
               </h2>
               <p className="mt-1 text-base text-muted">{t('stay.livingBody')}</p>
               <div className="mt-5 flex flex-wrap gap-3">
-                <LinkButton to={side === 'host' ? '/host/checkin' : '/log'} variant="dark">
+                <LinkButton to={side === 'host' ? '/host/checkin' : '/aisha/log'} variant="dark">
                   {side === 'host' ? t('nav.checkin') : t('nav.log')}
                 </LinkButton>
-                <LinkButton to="/agreement" variant="secondary">
+                <LinkButton to={p('/agreement')} variant="secondary">
                   {t('nav.agreement')}
                 </LinkButton>
               </div>
@@ -198,7 +224,7 @@ export function Stay() {
                 <strong>{t('stay.endedTitle')}</strong> {t('stay.endedBody')}
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <LinkButton to={side === 'host' ? '/host/people' : '/explore'} variant="dark">
+                <LinkButton to={side === 'host' ? '/host/people' : '/aisha/explore'} variant="dark">
                   {t('stay.findOther')}
                 </LinkButton>
                 <Button variant="secondary" icon={<Undo2 size={16} aria-hidden />} onClick={resumeTrial}>
@@ -208,6 +234,53 @@ export function Stay() {
             </section>
           )}
         </div>
+
+        {draftSlot && (
+          <Modal
+            open
+            onClose={() => setDraftSlot(null)}
+            title={t('stay.confirmMeetTitle')}
+            size="sm"
+            footer={
+              <>
+                <Button variant="ghost" onClick={() => setDraftSlot(null)}>
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  variant="primary"
+                  icon={<CalendarCheck size={18} aria-hidden />}
+                  onClick={() => {
+                    if (draftSlot !== match.meetSlot) bookMeet(draftSlot)
+                    setDraftSlot(null)
+                  }}
+                >
+                  {t('stay.confirmMeet')}
+                </Button>
+              </>
+            }
+          >
+            <p className="text-base text-muted">{t('stay.confirmMeetBody', { name: a.name })}</p>
+            <div role="radiogroup" aria-label={t('stay.pick')} className="mt-4 space-y-2">
+              {MEET_SLOTS.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={draftSlot === s.id}
+                  onClick={() => setDraftSlot(s.id)}
+                  className={`flex w-full items-center gap-3 rounded-card border-2 p-3 text-left transition ${draftSlot === s.id ? 'border-ink bg-surface' : 'border-line hover:border-muted'}`}
+                >
+                  <CalendarCheck size={20} aria-hidden className={draftSlot === s.id ? 'text-ink' : 'text-muted'} />
+                  <span className="flex-1">
+                    <span className="block font-semibold">{fmt(s.date())}</span>
+                    <span className="block text-sm text-muted">{t(`stay.place.${s.place}`)}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className="mt-4 text-sm text-muted">{t('stay.confirmMeetNote', { name: a.name })}</p>
+          </Modal>
+        )}
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="rounded-sheet border border-line p-6 shadow-lift">

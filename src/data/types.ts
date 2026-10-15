@@ -69,7 +69,7 @@ export interface Message {
   flag?: 'care' | 'money' | 'romance'
   untranslated?: boolean
   /** A system notice in the thread instead of a person's message (rendered from `meetSlot`). */
-  event?: 'meet'
+  event?: 'meet' | 'meetConfirmed'
   meetSlot?: string
 }
 

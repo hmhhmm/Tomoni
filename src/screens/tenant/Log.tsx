@@ -66,7 +66,7 @@ export function Log() {
           title={t('log.emptyTitle')}
           body={t('log.emptyBody')}
           action={
-            <LinkButton to="/stay" variant="dark">
+            <LinkButton to="/aisha/stay" variant="dark">
               {t('nav.stay')}
             </LinkButton>
           }

@@ -38,8 +38,8 @@ export function Verify() {
         total={4}
         title={t('onb.doneTitle')}
         lede={t('onb.doneLede')}
-        exitTo="/account"
-        onNext={() => nav('/explore')}
+        exitTo="/aisha/account"
+        onNext={() => nav('/aisha/explore')}
         nextLabel={t('onb.browse')}
       >
         {tenant.residence === 'student' && tenant.workPermit && (
@@ -80,7 +80,7 @@ export function Verify() {
       total={4}
       title={titles[step]}
       lede={t('onb.lede')}
-      exitTo="/account"
+      exitTo="/aisha/account"
       onBack={back}
       onNext={next}
       nextLabel={step === 3 ? t('onb.finish') : t('common.next')}

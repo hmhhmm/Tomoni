@@ -48,7 +48,7 @@ export function Agreement() {
           title={t('pact.emptyTitle')}
           body={t('pact.emptyBody')}
           action={
-            <LinkButton to={viewer === 'host' ? '/host/people' : '/explore'} variant="dark">
+            <LinkButton to={viewer === 'host' ? '/host/people' : '/aisha/explore'} variant="dark">
               {viewer === 'host' ? t('nav.people') : t('nav.explore')}
             </LinkButton>
           }
@@ -324,7 +324,7 @@ export function Agreement() {
                 <Notice tone="teal" live icon={<PartyPopper size={22} aria-hidden className="text-teal-700" />} title={t('pact.done')}>
                   {t('pact.doneBody')}
                 </Notice>
-                <Button className="mt-3" block variant="dark" onClick={() => nav(viewer === 'host' ? '/host/checkin' : '/log')}>
+                <Button className="mt-3" block variant="dark" onClick={() => nav(viewer === 'host' ? '/host/checkin' : '/aisha/log')}>
                   {viewer === 'host' ? t('pact.toCheckin') : t('pact.toLog')}
                 </Button>
               </div>

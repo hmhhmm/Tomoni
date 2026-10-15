@@ -21,6 +21,7 @@ import { Agreement } from './screens/Agreement'
 import { FamilyDashboard, FamilyInvite } from './screens/family/Family'
 import { Safety } from './screens/Safety'
 import { Coordinator } from './screens/Coordinator'
+import { AishaScope, ToAisha } from './lib/paths'
 
 export default function App() {
   const lang = useStore((s) => s.lang)
@@ -44,13 +45,26 @@ export default function App() {
         <Route path="/messages/:id" element={<Messages />} />
         <Route path="/stay" element={<Stay />} />
         <Route path="/agreement" element={<Agreement />} />
-        <Route path="/explore" element={<Explore />} />
+        {/* The host can preview a room too, so /rooms stays shared. */}
         <Route path="/rooms/:id" element={<ListingDetail />} />
-        <Route path="/saved" element={<Navigate to="/explore?saved=1" replace />} />
-        <Route path="/log" element={<Log />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/account/verify" element={<Verify />} />
-        <Route path="/pulse" element={<Pulse />} />
+        {/* Aisyah's pages all live under /aisha/... */}
+        <Route path="/aisha" element={<AishaScope />}>
+          <Route index element={<Navigate to="/aisha/explore" replace />} />
+          <Route path="explore" element={<Explore />} />
+          <Route path="rooms/:id" element={<ListingDetail />} />
+          <Route path="messages" element={<Messages />} />
+          <Route path="messages/:id" element={<Messages />} />
+          <Route path="stay" element={<Stay />} />
+          <Route path="agreement" element={<Agreement />} />
+          <Route path="log" element={<Log />} />
+          <Route path="account" element={<Account />} />
+          <Route path="account/verify" element={<Verify />} />
+          <Route path="pulse" element={<Pulse />} />
+        </Route>
+        <Route path="/saved" element={<Navigate to="/aisha/explore?saved=1" replace />} />
+        {['/explore', '/log', '/account', '/account/verify', '/pulse'].map((p) => (
+          <Route key={p} path={p} element={<ToAisha />} />
+        ))}
         <Route path="/family" element={<FamilyDashboard />} />
         <Route path="/family/invite" element={<FamilyInvite />} />
         <Route path="/safety" element={<Safety />} />

@@ -31,7 +31,7 @@ export function MapView({ items, className = '', selected }: { items: Listing[];
         return (
           <Link
             key={l.id}
-            to={`/rooms/${l.id}`}
+            to={`/aisha/rooms/${l.id}`}
             style={{ left: `${p.x}%`, top: `${p.y}%` }}
             aria-label={`${text(l.area)} ${yen(l.homeshareRent)}`}
             className={`absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold shadow-lift transition hover:z-10 hover:scale-105 ${on ? 'z-10 bg-ink text-white' : 'bg-white text-ink'}`}

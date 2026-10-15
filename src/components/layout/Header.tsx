@@ -26,6 +26,7 @@ import { Wordmark } from './Wordmark'
 import { LangSelect } from './LangSelect'
 import { Avatar } from '../ui/Avatar'
 import { RULES } from '../../tokens'
+import { pathFor } from '../../lib/paths'
 
 export interface NavItem {
   to: string
@@ -39,6 +40,7 @@ export interface NavItem {
 
 /** Stay, Agreement and Check-in are one area in the nav, with tabs inside it. */
 export const STAY_ROUTES = ['/stay', '/agreement', '/host/checkin']
+const AISHA_STAY = ['/aisha/stay', '/aisha/agreement']
 
 export function useNav(): NavItem[] {
   const persona = useStore((s) => s.persona)
@@ -58,10 +60,10 @@ export function useNav(): NavItem[] {
   }
   if (persona === 'tenant') {
     return [
-      { to: '/explore', icon: Search, key: 'nav.explore', bottom: true, also: ['/rooms'] },
-      { to: '/messages', icon: MessageCircle, key: 'nav.messages', badge: tenantUnread, bottom: true },
-      { to: '/stay', icon: BedDouble, key: 'nav.stay', bottom: true, also: STAY_ROUTES },
-      { to: '/log', icon: ListChecks, key: 'nav.log', bottom: true },
+      { to: '/aisha/explore', icon: Search, key: 'nav.explore', bottom: true, also: ['/aisha/rooms'] },
+      { to: '/aisha/messages', icon: MessageCircle, key: 'nav.messages', badge: tenantUnread, bottom: true },
+      { to: '/aisha/stay', icon: BedDouble, key: 'nav.stay', bottom: true, also: AISHA_STAY },
+      { to: '/aisha/log', icon: ListChecks, key: 'nav.log', bottom: true },
     ]
   }
   if (persona === 'family') return [{ to: '/family', icon: LayoutDashboard, key: 'nav.family', bottom: true }]
@@ -160,7 +162,7 @@ export function Header() {
 
   const personas = [
     { id: 'host' as const, label: t('menu.asHost', { name: who.host }), icon: <KeyRound size={20} aria-hidden />, to: '/host' },
-    { id: 'tenant' as const, label: t('menu.asTenant', { name: who.tenant }), icon: <Search size={20} aria-hidden />, to: '/explore' },
+    { id: 'tenant' as const, label: t('menu.asTenant', { name: who.tenant }), icon: <Search size={20} aria-hidden />, to: '/aisha/explore' },
     { id: 'family' as const, label: t('menu.asFamily', { name: who.family }), icon: <HandHeart size={20} aria-hidden />, to: '/family' },
   ]
 
@@ -318,7 +320,7 @@ export function Header() {
                     icon={<UserRound size={20} aria-hidden />}
                     onClick={() => {
                       close()
-                      nav('/account')
+                      nav('/aisha/account')
                     }}
                   >
                     {t('menu.account')}
@@ -349,7 +351,7 @@ export function Header() {
                     loadScenario('living')
                     say(t('menu.loadedLiving'))
                     close()
-                    nav('/stay')
+                    nav(pathFor(persona, '/stay'))
                   }}
                 >
                   {t('menu.loadLiving')}

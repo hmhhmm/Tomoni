@@ -2,14 +2,16 @@ import { NavLink } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BedDouble, FileSignature, HeartPulse } from 'lucide-react'
 import { useStore } from '../../store'
+import { usePath } from '../../lib/paths'
 
 /** Stay, Agreement and Check-in are one area: these tabs move between them. */
 export function StayTabs() {
   const { t } = useTranslation()
   const persona = useStore((s) => s.persona)
+  const p = usePath()
   const tabs = [
-    { to: '/stay', icon: BedDouble, label: t('stayTabs.overview') },
-    { to: '/agreement', icon: FileSignature, label: t('nav.agreement') },
+    { to: p('/stay'), icon: BedDouble, label: t('stayTabs.overview') },
+    { to: p('/agreement'), icon: FileSignature, label: t('nav.agreement') },
     ...(persona === 'host' ? [{ to: '/host/checkin', icon: HeartPulse, label: t('nav.checkin') }] : []),
   ]
   return (
