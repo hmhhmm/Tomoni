@@ -9,7 +9,8 @@ import { HourMeter } from '../../components/domain/HourMeter'
 import { Chip } from '../../components/ui/Chip'
 import { Modal } from '../../components/ui/Modal'
 import { Textarea } from '../../components/ui/Field'
-import { useStore, weekHours } from '../../store'
+import { agreedHelps, useStore, weekHours } from '../../store'
+import { HELP_ORDER } from '../../data/seed'
 import { MEET_SLOTS } from '../../data/journey'
 import { formatDayTime } from '../../lib/format'
 import { useUI } from '../../ui'
@@ -86,7 +87,7 @@ export function FamilyDashboard() {
   const nav = useNavigate()
   const say = useUI((s) => s.say)
   const lang = useStore((s) => s.lang)
-  const { familyConsent, setFamilyConsent, checkins, tasks, match, applicants, tenant } = useStore()
+  const { familyConsent, setFamilyConsent, checkins, tasks, match, applicants, tenant, pactHelps, declined } = useStore()
   const addFlag = useStore((s) => s.addFlag)
   // "Contact the coordinator" lands on the coordinator desk for the Sato case.
   const [contactOpen, setContactOpen] = useState(false)
@@ -108,8 +109,12 @@ export function FamilyDashboard() {
     missed: { Icon: AlertTriangle, tone: 'border-rose-200 bg-rose-50', ic: 'text-rose-700', title: t('family.missed'), body: t('family.missedBody') },
     pending: { Icon: Hourglass, tone: 'border-line bg-surface', ic: 'text-muted', title: t('family.pending'), body: t('family.pendingBody') },
   }[st]
-  const slot = MEET_SLOTS.find((s) => s.id === match.meetSlot)
+  // The meet-up is only "coming up" before it happens (the trial starts after it).
+  const slot = match.stage === 'meet' ? MEET_SLOTS.find((s) => s.id === match.meetSlot) : undefined
   const fmt = (d: Date) => formatDayTime(d, lang)
+  // Regular help from the agreement, with its usual time (companionship-only stays have none).
+  const agreed = agreedHelps({ pactHelps, declined })
+  const regular = hasStay ? HELP_ORDER.filter((h) => agreed[h]).map((h) => ({ id: h, slot: agreed[h]!.slot })) : []
 
   // Weekly summary: built only from check-ins, confirmed hours and plans. Never from messages.
   const host = t('names.sato')
@@ -123,7 +128,7 @@ export function FamilyDashboard() {
     answered.length > 0 ? t('family.sum.streak', { good: goodCount, total: answered.length }) : null,
     confirmedH > 0 ? t('family.sum.hours', { name: housemate, h: confirmedH, host }) : t('family.sum.noHours'),
     waitingH > 0 ? t('family.sum.waiting', { h: waitingH, host }) : null,
-    t('family.sum.next', { what: t('family.dinner'), when: t('family.sunday') }),
+    regular[0] ? t('family.sum.next', { what: t(`help.${regular[0].id}.title`), when: t(`slot.${regular[0].slot}`) }) : null,
   ].filter(Boolean) as string[]
 
   return (
@@ -161,19 +166,19 @@ export function FamilyDashboard() {
               {t('family.upcoming')}
             </h2>
             <ul className="mt-3 space-y-2 text-base">
-              {hasStay && (
-                <li className="flex items-center justify-between gap-2 rounded-lg bg-surface px-3 py-2">
-                  <span>{t('family.dinner')}</span>
-                  <Chip>{t('family.sunday')}</Chip>
+              {regular.map((r) => (
+                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-surface px-3 py-2">
+                  <span>{t(`help.${r.id}.title`)}</span>
+                  <Chip>{t(`slot.${r.slot}`)}</Chip>
                 </li>
-              )}
+              ))}
               {slot && (
                 <li className="flex items-center justify-between gap-2 rounded-lg bg-surface px-3 py-2">
                   <span>{t('family.meetup')}</span>
                   <Chip>{fmt(slot.date())}</Chip>
                 </li>
               )}
-              {!hasStay && !slot && <li className="text-muted">{t('family.noUpcoming')}</li>}
+              {regular.length === 0 && !slot && <li className="text-muted">{t('family.noUpcoming')}</li>}
             </ul>
           </section>
         </div>

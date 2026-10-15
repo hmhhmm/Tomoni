@@ -1,11 +1,12 @@
 // Verifies that every t('...') key used in src exists in both en.ts and ja.ts.
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
-const root = new URL('../src/', import.meta.url).pathname
+// fileURLToPath keeps Windows paths valid (URL.pathname gives /E:/... there).
+const root = fileURLToPath(new URL('../src/', import.meta.url))
 const walk = (d) => readdirSync(d).flatMap((f) => (statSync(join(d, f)).isDirectory() ? walk(join(d, f)) : [join(d, f)]))
-const files = walk(root).filter((f) => /\.tsx?$/.test(f) && !f.includes('/i18n/'))
+const files = walk(root).filter((f) => /\.tsx?$/.test(f) && !/[\\/]i18n[\\/]/.test(f))
 
 const load = (f) => {
   const src = readFileSync(join(root, 'i18n', f), 'utf8')

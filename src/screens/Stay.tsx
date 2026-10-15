@@ -158,12 +158,13 @@ export function Stay() {
                           ))}
                         </div>
                         <div className="mt-5 flex flex-wrap items-center gap-3">
-                          <Button variant="dark" size="lg" onClick={() => startTrial(weeks)}>
+                          <Button variant="dark" size="lg" disabled={!match.meetConfirmed} onClick={() => startTrial(weeks)}>
                             {t('stay.start')}
                           </Button>
                           <Button variant="ghost" onClick={clearMeet}>
                             {t('stay.change')}
                           </Button>
+                          {!match.meetConfirmed && <p className="w-full text-sm text-muted">{t('stay.startNeedsConfirm', { name: a.name })}</p>}
                         </div>
                       </>
                     ) : (
