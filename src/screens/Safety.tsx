@@ -129,7 +129,7 @@ export function Safety() {
               <Textarea id="rep" rows={3} value={detail} onChange={(e) => setDetail(e.target.value)} />
               <Button
                 className="mt-4"
-                variant="dark"
+                variant="teal"
                 disabled={!cat}
                 onClick={() => {
                   addFlag({

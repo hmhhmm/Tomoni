@@ -86,6 +86,20 @@ Red is kept for the main action and the active place; teal means safe or done; a
 
 The brand accent was purple (#7050F8) until October 2026 and was changed to red after user feedback.
 
+## Buttons
+
+Each colour has one job, after Airbnb (red for the action that matters, black for everything ordinary):
+
+| Style | Use | Examples |
+|-------|-----|----------|
+| Red gradient (`primary`) | The one step that moves the stay forward. At most one visible per screen | Apply, Confirm and send (meet-up), Start the trial, Sign, Approve agreement, Log today's help, Send check-in |
+| Black (`dark`) | Ordinary progress and routine sends | Chat Send, wizard Next, Show N rooms, Message the coordinator |
+| Outlined (`secondary`) | Alternatives and secondary paths | Message, View stay, Edit meet-up, the journey button while tasks wait to be confirmed |
+| Teal (`teal`) | Safety, and "done / all good" | Confirm task, Safety Centre, Call support, Send report |
+| Danger (`danger`) and rose text | Serious or irreversible | Refer to police, report to the municipal desk; Reject is a quiet rose text button |
+
+Explore's round search button stays red as the one exception: it is the signature search control, not a text button.
+
 ## Type and size
 
 - Headings: Poppins (Noto Sans JP for Japanese). Body: DM Sans (Noto Sans JP for Japanese).

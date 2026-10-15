@@ -410,7 +410,7 @@ export function Coordinator() {
                   {!safeguardsDone(safeguards.c1) && <p className="mt-2 text-sm font-semibold text-amber-700">{t('coord.sg.needed')}</p>}
                   <Button
                     className="mt-3"
-                    variant="dark"
+                    variant="primary"
                     disabled={!safeguardsDone(safeguards.c1)}
                     icon={<Check size={18} aria-hidden />}
                     onClick={approvePact}

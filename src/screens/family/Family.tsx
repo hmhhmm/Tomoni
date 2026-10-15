@@ -58,7 +58,7 @@ export function FamilyInvite() {
       <p className="mt-5 text-base text-muted">{t('invite.revoke')}</p>
       <div className="mt-6 flex flex-wrap gap-3">
         <Button
-          variant="dark"
+          variant="primary"
           size="lg"
           onClick={() => {
             setFamilyConsent(true)

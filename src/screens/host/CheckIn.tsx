@@ -156,7 +156,7 @@ export function CheckIn() {
 
             <div className="flex">
               <Button
-                variant="dark"
+                variant="primary"
                 size="lg"
                 disabled={!choice}
                 onClick={() => {

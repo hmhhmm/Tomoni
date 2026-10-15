@@ -114,7 +114,7 @@ export function HostToday() {
                           : ''}
                 </p>
                 <Button
-                  variant={pending.length > 0 ? 'secondary' : 'dark'}
+                  variant={pending.length > 0 ? 'secondary' : 'primary'}
                   size="lg"
                   icon={<ArrowRight size={18} aria-hidden />}
                   className="flex-row-reverse"

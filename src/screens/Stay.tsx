@@ -158,7 +158,7 @@ export function Stay() {
                           ))}
                         </div>
                         <div className="mt-5 flex flex-wrap items-center gap-3">
-                          <Button variant="dark" size="lg" disabled={!match.meetConfirmed} onClick={() => startTrial(weeks)}>
+                          <Button variant="primary" size="lg" disabled={!match.meetConfirmed} onClick={() => startTrial(weeks)}>
                             {t('stay.start')}
                           </Button>
                           <Button variant="ghost" onClick={clearMeet}>
@@ -193,7 +193,7 @@ export function Stay() {
                 </div>
                 <div className="mt-5">
                   <Button
-                    variant="dark"
+                    variant="primary"
                     size="lg"
                     icon={<FileSignature size={18} aria-hidden />}
                     onClick={() => {
@@ -218,7 +218,7 @@ export function Stay() {
             <section className="rounded-card border border-line p-6">
               <h2 className="text-xl font-semibold">{t('stay.pactTitle')}</h2>
               <p className="mt-1 text-base text-muted">{t('stay.pactBody', { n: Number(pactSigned.host) + Number(pactSigned.tenant) })}</p>
-              <LinkButton to={p('/agreement')} variant="dark" size="lg" className="mt-5" icon={<ArrowRight size={18} aria-hidden />}>
+              <LinkButton to={p('/agreement')} variant="primary" size="lg" className="mt-5" icon={<ArrowRight size={18} aria-hidden />}>
                 {t('stay.openPact')}
               </LinkButton>
             </section>
