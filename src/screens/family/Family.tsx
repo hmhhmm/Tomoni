@@ -196,7 +196,11 @@ export function FamilyDashboard() {
               <li key={c.week} className="rounded-card bg-surface p-4">
                 <p className="text-sm font-semibold text-muted">{t('family.week', { n: c.week })}</p>
                 {c.photoData && (
-                  <img src={c.photoData} alt={t('family.shared.photoAlt', { n: c.week })} className="mt-2 max-h-56 w-full rounded-card object-cover" />
+                  <img
+                    src={c.photoData}
+                    alt={t('family.shared.photoAlt', { n: c.week })}
+                    className="mt-2 max-h-56 w-full rounded-card object-cover"
+                  />
                 )}
                 {!!c.voiceSecs && (
                   <p className="mt-2 flex items-center gap-2 text-base">

@@ -1,7 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, ArrowLeft, Check, ChevronDown, FileSignature, Flag, HeartPulse, LockKeyhole, MessageSquareWarning, Mic, PhoneCall, Timer, Users } from 'lucide-react'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  FileSignature,
+  Flag,
+  HeartPulse,
+  LockKeyhole,
+  MessageSquareWarning,
+  Mic,
+  PhoneCall,
+  Timer,
+  Users,
+} from 'lucide-react'
 import { agreedHelps, safeguardsDone, useStore, missedRun, weekHours } from '../store'
 import { CoordChat, ReferralPanel, SafeguardPanel } from '../components/domain/CaseSafety'
 import { Wordmark } from '../components/layout/Wordmark'
@@ -383,16 +397,19 @@ export function Coordinator() {
                 ))}
               </dl>
 
-              {sel === 'c1' && media.length > 0 && (
+              {sel === 'c1' && (media.length > 0 || match.stage === 'living') && (
                 <section aria-labelledby="media-title" className="mt-4 rounded-card border border-line p-4">
                   <h3 id="media-title" className="text-sm font-semibold">
                     {t('coord.media.title')}
                   </h3>
+                  {media.length === 0 && <p className="mt-1 text-sm text-muted">{t('coord.media.none')}</p>}
                   <ul className="mt-2 space-y-2">
                     {media.map((c) => (
                       <li key={c.week} className="flex flex-wrap items-center gap-3 text-base">
                         <span className="font-medium">{t('checkin.week', { n: c.week })}</span>
-                        {c.photoData && <img src={c.photoData} alt={t('coord.media.photoAlt', { n: c.week })} className="h-12 w-12 rounded-btn object-cover" />}
+                        {c.photoData && (
+                          <img src={c.photoData} alt={t('coord.media.photoAlt', { n: c.week })} className="h-12 w-12 rounded-btn object-cover" />
+                        )}
                         {!!c.voiceSecs && (
                           <span className="inline-flex items-center gap-1 text-sm">
                             <Mic size={14} aria-hidden /> 0:{String(c.voiceSecs).padStart(2, '0')}
@@ -400,13 +417,20 @@ export function Coordinator() {
                         )}
                         {c.mediaDeleted && <span className="text-sm text-muted">{t('coord.media.deleted', { days: RULES.mediaDays })}</span>}
                         {!c.mediaDeleted && (
-                          <Chip tone={c.shareFamily ? 'teal' : 'neutral'}>{c.shareFamily ? t('coord.media.shared') : t('coord.media.coordOnly')}</Chip>
+                          <Chip tone={c.shareFamily ? 'teal' : 'neutral'}>
+                            {c.shareFamily ? t('coord.media.shared') : t('coord.media.coordOnly')}
+                          </Chip>
                         )}
                       </li>
                     ))}
                   </ul>
                   <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm">
-                    <input type="checkbox" checked={!!keepMedia.c1} onChange={(e) => setKeepMedia('c1', e.target.checked)} className="mt-0.5 h-5 w-5 accent-ink" />
+                    <input
+                      type="checkbox"
+                      checked={!!keepMedia.c1}
+                      onChange={(e) => setKeepMedia('c1', e.target.checked)}
+                      className="mt-0.5 h-5 w-5 accent-ink"
+                    />
                     <span>{t('coord.media.keep', { days: RULES.mediaDays })}</span>
                   </label>
                 </section>

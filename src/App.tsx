@@ -27,6 +27,14 @@ export default function App() {
   const lang = useStore((s) => s.lang)
   // Check-in photos and voice notes are deleted after RULES.mediaDays (unless kept as evidence).
   useEffect(() => useStore.getState().pruneMedia(), [])
+  // Keep open tabs in step: when another tab saves (say, a check-in), reload the saved state here.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'tomoni-v2') void useStore.persist.rehydrate()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
   useEffect(() => {
     document.documentElement.lang = lang
     i18n.changeLanguage(lang)

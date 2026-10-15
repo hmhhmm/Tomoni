@@ -22,7 +22,10 @@ export function CheckIn() {
   const [secs, setSecs] = useState(0)
   const [choice, setChoice] = useState<'good' | 'notgood' | null>(null)
   // Optional photo: previewed from the file, and stored as a small JPEG for the coordinator (and Emi if shared).
-  const [photo, setPhoto] = useState<{ url: string; name: string; data?: string } | null>(null)
+  const [photo, setPhoto] = useState<{ url: string; name: string; data?: string; failed?: boolean } | null>(null)
+  const preparing = !!photo && !photo.data && !photo.failed
+  const hasMedia = (!!photo && !photo.failed) || rec === 'done'
+  const canShare = familyConsent && hasMedia
   useEffect(() => () => (photo ? URL.revokeObjectURL(photo.url) : undefined), [photo])
 
   useEffect(() => {
@@ -131,7 +134,11 @@ export function CheckIn() {
               {photo ? (
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <img src={photo.url} alt={t('checkin.photoAlt')} className="h-24 w-24 rounded-card object-cover ring-1 ring-line" />
-                  <span className="min-w-0 flex-1 truncate text-sm text-muted">{photo.name}</span>
+                  <span className="min-w-0 flex-1 text-sm" role="status">
+                    <span className="block truncate text-muted">{photo.name}</span>
+                    {preparing && <span className="block text-muted">{t('checkin.preparing')}</span>}
+                    {photo.failed && <span className="block font-semibold text-rose-700">{t('checkin.photoError')}</span>}
+                  </span>
                   <Button variant="ghost" size="sm" icon={<Trash2 size={14} aria-hidden />} onClick={() => setPhoto(null)}>
                     {t('common.remove')}
                   </Button>
@@ -151,7 +158,7 @@ export function CheckIn() {
                         setPhoto({ url, name: f.name })
                         downscale(f)
                           .then((data) => setPhoto((p) => (p && p.url === url ? { ...p, data } : p)))
-                          .catch(() => undefined)
+                          .catch(() => setPhoto((p) => (p && p.url === url ? { ...p, failed: true } : p)))
                       }
                       e.target.value = ''
                     }}
@@ -165,32 +172,40 @@ export function CheckIn() {
                 <Lock size={16} aria-hidden className="mt-1 shrink-0 text-muted" />
                 {t('checkin.whoSees', { days: RULES.mediaDays })}
               </p>
-              {familyConsent && (
-                <label className="mt-3 flex cursor-pointer items-start gap-3 text-base">
+              {
+                <label className={`mt-3 flex items-start gap-3 text-base ${canShare ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
                   <input
                     type="checkbox"
-                    checked={share}
-                    disabled={!photo && rec !== 'done'}
+                    checked={share && canShare}
+                    disabled={!canShare}
                     onChange={(e) => setShare(e.target.checked)}
                     className="mt-1 h-5 w-5 accent-ink"
                   />
                   <span>
                     <span className="block font-semibold">{t('checkin.shareFamily', { name: t('names.emi') })}</span>
                     <span className="block text-sm text-muted">
-                      {!photo && rec !== 'done' ? t('checkin.shareNothing') : t('checkin.shareHint', { name: t('names.emi') })}
+                      {!familyConsent
+                        ? t('checkin.shareNoFamily', { name: t('names.emi') })
+                        : !hasMedia
+                          ? t('checkin.shareNothing')
+                          : t('checkin.shareHint', { name: t('names.emi') })}
                     </span>
                   </span>
                 </label>
-              )}
+              }
             </div>
 
             <div className="flex">
               <Button
                 variant="primary"
                 size="lg"
-                disabled={!choice}
+                disabled={!choice || preparing}
                 onClick={() => {
-                  submitCheckin(choice!, { voiceSecs: rec === 'done' ? Math.max(1, secs) : undefined, photoData: photo?.data, shareFamily: share })
+                  submitCheckin(choice!, {
+                    voiceSecs: rec === 'done' ? Math.max(1, secs) : undefined,
+                    photoData: photo?.data,
+                    shareFamily: share && canShare,
+                  })
                   setChoice(null)
                   setRec('idle')
                   setPhoto(null)
