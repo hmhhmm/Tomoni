@@ -1,7 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Calendar, CalendarCheck, CalendarPlus, Check, HeartHandshake, MessageCircle, Send, ShieldAlert, Undo2, UserX } from 'lucide-react'
+import {
+  ArrowLeft,
+  Calendar,
+  CalendarCheck,
+  CalendarPlus,
+  Check,
+  HeartHandshake,
+  LockKeyhole,
+  MessageCircle,
+  Send,
+  ShieldAlert,
+  Undo2,
+  UserX,
+} from 'lucide-react'
 import { useStore, tenantKey } from '../store'
 import { ChatBubble } from '../components/domain/ChatBubble'
 import { Avatar } from '../components/ui/Avatar'
@@ -11,6 +24,7 @@ import { Page } from '../components/domain/Bits'
 import { PHRASES } from '../lib/guardrails'
 import { LISTINGS, APPLICANTS } from '../data/seed'
 import { MEET_SLOTS } from '../data/journey'
+import { CoordChat } from '../components/domain/CaseSafety'
 import { formatDayTime } from '../lib/format'
 import { useL } from '../lib/hooks'
 import { useUI } from '../ui'
@@ -146,7 +160,10 @@ export function Messages() {
     }))
   }, [side, applicants, applications, threads, text, id])
 
-  const activeRoute = id ?? convos[0]?.route
+  // The housemate always has a private line to the coordinator, pinned at the top.
+  const activeRoute = id ?? convos[0]?.route ?? (side === 'tenant' ? 'coordinator' : undefined)
+  const coordOpen = side === 'tenant' && activeRoute === 'coordinator'
+  const coordUnreadN = useStore((s) => s.coordUnread.tenant)
   const active = convos.find((c) => c.route === activeRoute)
   const key = active?.key ?? ''
 
@@ -178,7 +195,7 @@ export function Messages() {
       </Page>
     )
   }
-  if (convos.length === 0) {
+  if (convos.length === 0 && side === 'host') {
     return (
       <Page className="py-10">
         <EmptyState
@@ -215,6 +232,29 @@ export function Messages() {
         aria-label={t('chat.inbox')}
       >
         <h1 className="px-5 pb-3 pt-6 text-[1.5rem] font-semibold">{t('nav.messages')}</h1>
+        {side === 'tenant' && (
+          <Link
+            to={p('/messages/coordinator')}
+            aria-current={coordOpen ? 'true' : undefined}
+            className={`flex items-center gap-3 border-b border-soft px-5 py-4 hover:bg-surface ${coordOpen ? 'bg-surface' : ''}`}
+          >
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-teal-50 text-teal-700">
+              <LockKeyhole size={22} aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold">{t('coordChat.title')}</p>
+              <p className="truncate text-sm text-muted">{t('coordChat.sub')}</p>
+            </div>
+            {coordUnreadN > 0 && (
+              <span
+                className="grid h-5 min-w-5 place-items-center rounded-full bg-purple-600 px-1.5 text-xs font-bold text-white"
+                aria-label={t('nav.unread', { n: coordUnreadN })}
+              >
+                {coordUnreadN}
+              </span>
+            )}
+          </Link>
+        )}
         <ul>
           {convos.map((c) => {
             const n = unread[side][c.key] ?? 0
@@ -259,7 +299,25 @@ export function Messages() {
 
       {/* Thread */}
       <section className={`${showList ? 'hidden' : 'flex'} min-h-0 min-w-0 flex-col lg:flex`} aria-label={t('chat.thread')}>
-        {active && (
+        {coordOpen && (
+          <>
+            <div className="flex items-center gap-3 border-b border-soft px-4 py-3 lg:px-6">
+              <Link
+                to={p('/messages')}
+                aria-label={t('common.back')}
+                className="grid h-10 w-10 place-items-center rounded-full hover:bg-surface lg:hidden"
+              >
+                <ArrowLeft size={20} aria-hidden />
+              </Link>
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-teal-50 text-teal-700">
+                <LockKeyhole size={20} aria-hidden />
+              </span>
+              <h2 className="text-base font-semibold">{t('coordChat.title')}</h2>
+            </div>
+            <CoordChat side="tenant" />
+          </>
+        )}
+        {!coordOpen && active && (
           <>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-soft px-4 py-3 lg:px-6">
               <Link

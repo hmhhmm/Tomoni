@@ -14,6 +14,7 @@ import { formatDay } from '../../lib/format'
 import { useUI } from '../../ui'
 import { RULES } from '../../tokens'
 import type { HelpId } from '../../data/types'
+import { PausedNotice } from '../../components/domain/CaseSafety'
 
 /** A colour per task so the log reads at a glance (fills only; text stays at AA contrast). */
 const TINT: Record<HelpId, { tile: string; icon: string; pill: string }> = {
@@ -99,7 +100,7 @@ export function Log() {
     if (!pick) return
     const r = logTask(pick, h)
     if (r !== 'ok') {
-      say(t(r === 'student' ? 'log.overStudent' : 'log.overCap'))
+      say(t(r === 'student' ? 'log.overStudent' : r === 'paused' ? 'paused.log' : 'log.overCap'))
       return
     }
     setJustLogged({ help: pick, hours: h })
@@ -108,6 +109,7 @@ export function Log() {
 
   return (
     <Page className="py-8">
+      <PausedNotice />
       <h1 className="text-[1.75rem] font-semibold">{t('log.title')}</h1>
       <p className="mt-1 text-base text-muted">{t('log.lede', { name: t('names.sato') })}</p>
 

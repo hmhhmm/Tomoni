@@ -4,7 +4,8 @@ import type { Flag } from '../data/types'
  * Response deadlines from IDEA.md §3.3: safety issues within 24 hours, anything else within
  * 5 working days. Working days skip Saturday and Sunday (public holidays are not counted here).
  */
-const SAFETY: Flag['kind'][] = ['money', 'care', 'romance', 'report', 'notgood']
+// A private message to the coordinator may be about exploitation, so it is treated as safety.
+const SAFETY: Flag['kind'][] = ['money', 'care', 'romance', 'report', 'notgood', 'private']
 
 export const isSafety = (kind: Flag['kind']) => SAFETY.includes(kind)
 

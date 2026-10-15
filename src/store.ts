@@ -5,6 +5,9 @@ import type {
   Applicant,
   CaseRow,
   CheckinStatus,
+  CoordMessage,
+  ReferralKind,
+  SafeguardKey,
   Flag,
   HelpId,
   Helps,
@@ -22,6 +25,7 @@ import {
   HOST_REPLIES,
   SATO_HELPS,
   SEED_CASES,
+  SEED_COORD_THREAD,
   SEED_DRAFT,
   SEED_FLAGS,
   SEED_MESSAGES,
@@ -76,6 +80,16 @@ interface Data {
   caseStep: Record<string, number>
   /** Coordinator minutes spent per case. */
   caseMinutes: Record<string, number>
+  /** Private housemate ↔ coordinator chat for the live case; the host never sees it. */
+  coordThread: CoordMessage[]
+  /** Unread private messages for each side of that chat. */
+  coordUnread: { tenant: number; coord: number }
+  /** Who the coordinator informed or referred the case to, and when. */
+  referrals: Record<string, { kind: ReferralKind; when: string }[]>
+  /** Safeguarding checklist per case (IDEA.md §3.3). */
+  safeguards: Record<string, Partial<Record<SafeguardKey, boolean>>>
+  /** Cases paused by the coordinator, e.g. a concern about the host's capacity. */
+  paused: Record<string, boolean>
 }
 
 interface Actions {
@@ -103,7 +117,7 @@ interface Actions {
   sign: (who: Side) => void
   approvePact: () => void
   submitCheckin: (status: 'good' | 'notgood', voice: boolean, photo?: boolean) => void
-  logTask: (help: HelpId, hours: number) => 'ok' | 'cap' | 'student'
+  logTask: (help: HelpId, hours: number) => 'ok' | 'cap' | 'student' | 'paused'
   confirmTask: (id: string) => void
   patchTenant: (p: Partial<TenantProfile>) => void
   setFamilyConsent: (v: boolean) => void
@@ -112,6 +126,11 @@ interface Actions {
   resolveFlag: (id: string) => void
   setCaseStep: (id: string, step: number) => void
   addCaseMinutes: (id: string, minutes: number) => void
+  sendCoord: (from: 'tenant' | 'coord', text: string) => void
+  markCoordRead: (side: 'tenant' | 'coord') => void
+  addReferral: (caseId: string, kind: ReferralKind) => void
+  toggleSafeguard: (caseId: string, key: SafeguardKey) => void
+  setPaused: (caseId: string, paused: boolean) => void
   markMissed: (caseId: string) => void
   setCaseNote: (id: string, note: string) => void
   loadScenario: (kind: 'start' | 'living') => void
@@ -129,6 +148,10 @@ export const companionOnly = (t: Pick<TenantProfile, 'residence' | 'workPermit'>
 
 /** Only the Sato thread (a1) belongs to a live case; other threads are before any match. */
 const caseOf = (threadKey: string) => (threadKey === 'a1' ? 'c1' : null)
+
+export const SAFEGUARD_KEYS: SafeguardKey[] = ['metAlone', 'refs', 'homeCheck']
+/** All safeguarding checks ticked for a case. */
+export const safeguardsDone = (g: Partial<Record<SafeguardKey, boolean>> | undefined) => SAFEGUARD_KEYS.every((k) => g?.[k])
 
 const UNSIGNED = { pactSigned: { host: false, tenant: false }, pactApproved: false }
 
@@ -174,12 +197,21 @@ const base = (): Data => ({
   caseNotes: {},
   caseStep: { c2: 2, c4: 1 },
   caseMinutes: Object.fromEntries(SEED_CASES.map((c) => [c.id, c.coordMinutes])),
+  coordThread: SEED_COORD_THREAD.map((m) => ({ ...m })),
+  coordUnread: { tenant: 1, coord: 0 },
+  referrals: { c2: [{ kind: 'family', when: 'Mon 10:20' }] },
+  // Established matches have finished their checks; the new Sato match has not.
+  safeguards: Object.fromEntries(SEED_CASES.filter((c) => c.id !== 'c1').map((c) => [c.id, { metAlone: true, refs: true, homeCheck: true }])),
+  paused: {},
 })
 
 const living = (): Partial<Data> => ({
   match: { applicantId: 'a1', stage: 'living', meetSlot: 'sat14', trialWeeks: 3, trialStart: daysAgo(17) },
   pactSigned: { host: true, tenant: true },
   pactApproved: true,
+  safeguards: {
+    ...Object.fromEntries(SEED_CASES.map((c) => [c.id, { metAlone: true, refs: true, homeCheck: true }])),
+  },
   checkins: livingCheckins(),
   tasks: livingTasks(),
   familyConsent: true,
@@ -356,7 +388,7 @@ export const useStore = create<State>()(
 
       approvePact: () =>
         set((s) =>
-          s.match.stage === 'pact' && s.pactSigned.host && s.pactSigned.tenant
+          s.match.stage === 'pact' && s.pactSigned.host && s.pactSigned.tenant && safeguardsDone(s.safeguards.c1)
             ? {
                 pactApproved: true,
                 match: { ...s.match, stage: 'living' },
@@ -381,6 +413,7 @@ export const useStore = create<State>()(
         weekStart.setHours(0, 0, 0, 0)
         weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7))
         const inWeek = s.tasks.filter((t) => new Date(t.date) >= weekStart).reduce((a, t) => a + t.hours, 0)
+        if (s.paused.c1) return 'paused'
         if (inWeek + hours > RULES.weeklyHourCap) return 'cap'
         // Help counts toward a student's 28h/week limit, so block rather than only warn.
         if (s.tenant.residence === 'student' && s.tenant.otherHours + inWeek + hours > RULES.studentWeeklyLimit) return 'student'
@@ -402,6 +435,24 @@ export const useStore = create<State>()(
       resolveFlag: (fid) => set((s) => ({ flags: s.flags.map((f) => (f.id === fid ? { ...f, resolved: true } : f)) })),
       setCaseStep: (cid, step) => set((s) => ({ caseStep: { ...s.caseStep, [cid]: Math.max(0, Math.min(LADDER.length, step)) } })),
       addCaseMinutes: (cid, m) => set((s) => ({ caseMinutes: { ...s.caseMinutes, [cid]: (s.caseMinutes[cid] ?? 0) + m } })),
+
+      // Private channel: a housemate's message is a 24 h item on the desk; the host is never told.
+      sendCoord: (from, text) => {
+        const v = text.trim()
+        if (!v) return
+        set((s) => ({
+          coordThread: [...s.coordThread, { id: id('cm'), from, text: v, when: nowLabel() }],
+          coordUnread:
+            from === 'tenant' ? { ...s.coordUnread, coord: s.coordUnread.coord + 1 } : { ...s.coordUnread, tenant: s.coordUnread.tenant + 1 },
+        }))
+        const live = get().match.applicantId === 'a1' && get().match.stage !== 'none'
+        if (from === 'tenant') get().addFlag({ caseId: live ? 'c1' : null, kind: 'private', text: v })
+      },
+      markCoordRead: (side) => set((s) => (s.coordUnread[side] ? { coordUnread: { ...s.coordUnread, [side]: 0 } } : {})),
+      addReferral: (cid, kind) => set((s) => ({ referrals: { ...s.referrals, [cid]: [...(s.referrals[cid] ?? []), { kind, when: nowLabel() }] } })),
+      toggleSafeguard: (cid, key) =>
+        set((s) => ({ safeguards: { ...s.safeguards, [cid]: { ...s.safeguards[cid], [key]: !s.safeguards[cid]?.[key] } } })),
+      setPaused: (cid, p) => set((s) => ({ paused: { ...s.paused, [cid]: p } })),
 
       markMissed: (caseId) => {
         if (caseId === 'c1') {

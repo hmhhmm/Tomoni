@@ -49,7 +49,8 @@ export function useNav(): NavItem[] {
   // Badges only count people who are still active (not rejected).
   const active = applicants.filter((a) => a.status !== 'declined')
   const hostUnread = active.reduce((n, a) => n + (unread.host[a.id] ?? 0), 0)
-  const tenantUnread = Object.values(unread.tenant).reduce((a, b) => a + b, 0)
+  const coordUnread = useStore((s) => s.coordUnread.tenant)
+  const tenantUnread = Object.values(unread.tenant).reduce((a, b) => a + b, 0) + coordUnread
   if (persona === 'host') {
     return [
       { to: '/host', icon: Home, key: 'nav.today', bottom: true },

@@ -1,8 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, ArrowLeft, Check, FileSignature, Flag, HeartPulse, MessageSquareWarning, PhoneCall, Timer, Users } from 'lucide-react'
-import { agreedHelps, useStore, missedRun, weekHours } from '../store'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  FileSignature,
+  Flag,
+  HeartPulse,
+  LockKeyhole,
+  MessageSquareWarning,
+  PhoneCall,
+  Timer,
+  Users,
+} from 'lucide-react'
+import { agreedHelps, safeguardsDone, useStore, missedRun, weekHours } from '../store'
+import { CoordChat, ReferralPanel, SafeguardPanel } from '../components/domain/CaseSafety'
 import { Wordmark } from '../components/layout/Wordmark'
 import { LangSelect } from '../components/layout/LangSelect'
 import { Chip } from '../components/ui/Chip'
@@ -16,7 +29,7 @@ import type { CaseRow, CheckinStatus, Flag as FlagT } from '../data/types'
 import { SEED_PULSES } from '../data/seed'
 import { hoursLeft, isSafety } from '../lib/sla'
 
-const TONE = { healthy: 'teal', trial: 'purple', review: 'purple', attention: 'amber', alert: 'rose' } as const
+const TONE = { healthy: 'teal', trial: 'purple', review: 'purple', attention: 'amber', alert: 'rose', paused: 'amber' } as const
 /** Detail banner colour follows the case status. */
 const BANNER = {
   healthy: 'border-teal-100 bg-teal-50',
@@ -24,6 +37,7 @@ const BANNER = {
   review: 'border-purple-100 bg-purple-50',
   attention: 'border-amber-200 bg-amber-50',
   alert: 'border-rose-200 bg-rose-50',
+  paused: 'border-amber-200 bg-amber-50',
 } as const
 const DOT = { good: 'bg-teal-500', notgood: 'bg-amber-700', missed: 'bg-rose-700', pending: 'bg-soft' } as const
 
@@ -50,6 +64,9 @@ export function Coordinator() {
     caseMinutes,
     addCaseMinutes,
     pulse,
+    paused,
+    safeguards,
+    coordUnread,
   } = useStore()
   const [sel, setSel] = useState('c1')
   useEffect(() => {
@@ -66,10 +83,10 @@ export function Coordinator() {
         const live = c.id === 'c1'
         const hasFlag = open.some((f) => f.caseId === c.id)
         const base: CaseRow['status'] = live ? (match.stage === 'living' ? 'healthy' : awaitingApproval ? 'review' : 'trial') : c.status
-        const status: CaseRow['status'] = missedRun(hist) >= 2 ? 'alert' : hasFlag ? 'attention' : base
+        const status: CaseRow['status'] = missedRun(hist) >= 2 ? 'alert' : paused[c.id] ? 'paused' : hasFlag ? 'attention' : base
         return { ...c, checkins: hist, status, week: live ? Math.max(1, hist.length) : c.week, avgHours: live ? weekHours(tasks, true) : c.avgHours }
       }),
-    [cases, checkins, open, tasks, match.stage, awaitingApproval],
+    [cases, checkins, open, tasks, match.stage, awaitingApproval, paused],
   )
 
   const flagBody = (f: FlagT) =>
@@ -120,8 +137,17 @@ export function Coordinator() {
         id: f.id,
         caseId: f.caseId,
         flagId: f.id as string | null,
-        icon: f.kind === 'report' ? Flag : f.kind === 'family' ? Users : f.kind === 'pulse' ? HeartPulse : MessageSquareWarning,
-        tone: (['notgood', 'report', 'family', 'pulse'].includes(f.kind) ? 'amber' : 'rose') as 'amber' | 'rose',
+        icon:
+          f.kind === 'report'
+            ? Flag
+            : f.kind === 'family'
+              ? Users
+              : f.kind === 'pulse'
+                ? HeartPulse
+                : f.kind === 'private'
+                  ? LockKeyhole
+                  : MessageSquareWarning,
+        tone: (['notgood', 'report', 'family', 'pulse', 'private'].includes(f.kind) ? 'amber' : 'rose') as 'amber' | 'rose',
         title: t(`coord.flag.${f.kind}`),
         body: flagBody(f),
         when: f.when,
@@ -202,6 +228,11 @@ export function Coordinator() {
                             <span className="mt-0.5 block text-sm font-normal text-muted">
                               {t('coord.tenant')}: {r.tenant}
                             </span>
+                            {r.id === 'c1' && coordUnread.coord > 0 && (
+                              <span className="mt-1 inline-block rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700">
+                                {t('coordChat.unread', { n: coordUnread.coord })}
+                              </span>
+                            )}
                           </button>
                         </td>
                         <td className="pr-3">
@@ -330,10 +361,30 @@ export function Coordinator() {
                   <p className="mt-2 text-sm text-muted">
                     {t('coord.approveTotal', { total: hoursOf(agreed), cap: RULES.weeklyHourCap, n: declined.length })}
                   </p>
-                  <Button className="mt-3" variant="dark" icon={<Check size={18} aria-hidden />} onClick={approvePact}>
+                  {!safeguardsDone(safeguards.c1) && <p className="mt-2 text-sm font-semibold text-amber-700">{t('coord.sg.needed')}</p>}
+                  <Button
+                    className="mt-3"
+                    variant="dark"
+                    disabled={!safeguardsDone(safeguards.c1)}
+                    icon={<Check size={18} aria-hidden />}
+                    onClick={approvePact}
+                  >
                     {t('coord.approve')}
                   </Button>
                 </div>
+              )}
+
+              <SafeguardPanel caseId={sel} />
+              <ReferralPanel caseId={sel} />
+              {sel === 'c1' && (
+                <section aria-labelledby="coord-chat" className="mt-5 overflow-hidden rounded-card border border-line">
+                  <h3 id="coord-chat" className="flex items-center gap-2 border-b border-soft px-4 py-2 text-sm font-semibold">
+                    {t('coordChat.deskTitle', { name: current.tenant })}
+                  </h3>
+                  <div className="flex h-80 flex-col">
+                    <CoordChat side="coord" />
+                  </div>
+                </section>
               )}
 
               <div className="mt-4">
