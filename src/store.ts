@@ -33,6 +33,7 @@ import {
 import { detectGuardrail, translate } from './lib/guardrails'
 import { hoursOf } from './data/pricing'
 import { RULES } from './tokens'
+import { LADDER } from './data/journey'
 
 interface Match {
   applicantId: string | null
@@ -69,7 +70,7 @@ interface Data {
   flags: Flag[]
   cases: CaseRow[]
   caseNotes: Record<string, string>
-  /** Escalation ladder step per case: 0 none, 1-4 = ladder.s1-s4. */
+  /** Escalation ladder step per case: 0 none, 1-6 = ladder.s1-s6. */
   caseStep: Record<string, number>
   /** Coordinator minutes spent per case. */
   caseMinutes: Record<string, number>
@@ -357,7 +358,7 @@ export const useStore = create<State>()(
       setPulse: (pulse) => set({ pulse }),
       addFlag: (f) => set((s) => ({ flags: [{ ...f, id: id('f'), when: nowLabel() }, ...s.flags] })),
       resolveFlag: (fid) => set((s) => ({ flags: s.flags.map((f) => (f.id === fid ? { ...f, resolved: true } : f)) })),
-      setCaseStep: (cid, step) => set((s) => ({ caseStep: { ...s.caseStep, [cid]: Math.max(0, Math.min(4, step)) } })),
+      setCaseStep: (cid, step) => set((s) => ({ caseStep: { ...s.caseStep, [cid]: Math.max(0, Math.min(LADDER.length, step)) } })),
       addCaseMinutes: (cid, m) => set((s) => ({ caseMinutes: { ...s.caseMinutes, [cid]: (s.caseMinutes[cid] ?? 0) + m } })),
 
       markMissed: (caseId) => {

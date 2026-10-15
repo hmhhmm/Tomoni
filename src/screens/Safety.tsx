@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { LADDER } from '../data/journey'
 import { ArrowLeft, Check, Flag, Phone, PhoneCall, Siren, UserRound, X } from 'lucide-react'
 import { Page, Notice } from '../components/domain/Bits'
 import { Button } from '../components/ui/Button'
@@ -148,8 +149,8 @@ export function Safety() {
         <section className="rounded-card border border-line p-6 lg:col-span-2">
           <h2 className="text-lg font-semibold">{t('ladder.title')}</h2>
           <p className="text-base text-muted">{t('ladder.lede')}</p>
-          <ol className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
+          <ol className="mt-5 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {LADDER.map((i) => (
               <li key={i} className="relative">
                 <span className="grid h-9 w-9 place-items-center rounded-full bg-ink font-heading font-semibold text-white">{i}</span>
                 <p className="mt-3 font-semibold leading-tight">{t(`ladder.s${i}`)}</p>

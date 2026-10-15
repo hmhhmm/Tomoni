@@ -1,6 +1,6 @@
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, CalendarDays, Check, EyeOff, Hourglass, Phone, ThumbsDown, ThumbsUp } from 'lucide-react'
+import { AlertTriangle, CalendarDays, Check, EyeOff, Hourglass, Lock, NotebookText, Phone, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { Page, Notice, FictionalTag } from '../../components/domain/Bits'
 import { Avatar } from '../../components/ui/Avatar'
 import { Button } from '../../components/ui/Button'
@@ -82,7 +82,7 @@ export function FamilyDashboard() {
   const nav = useNavigate()
   const say = useUI((s) => s.say)
   const lang = useStore((s) => s.lang)
-  const { familyConsent, setFamilyConsent, checkins, tasks, match } = useStore()
+  const { familyConsent, setFamilyConsent, checkins, tasks, match, applicants, tenant } = useStore()
   if (!familyConsent) return <Navigate to="/family/invite" replace />
 
   const current = checkins[checkins.length - 1]
@@ -102,6 +102,21 @@ export function FamilyDashboard() {
   }[st]
   const slot = MEET_SLOTS.find((s) => s.id === match.meetSlot)
   const fmt = (d: Date) => formatDayTime(d, lang)
+
+  // Weekly summary: built only from check-ins, confirmed hours and plans. Never from messages.
+  const host = t('names.sato')
+  const housemate = applicants.find((a) => a.id === match.applicantId)?.name ?? tenant.name
+  const answered = checkins.filter((c) => c.status !== 'pending')
+  const goodCount = answered.filter((c) => c.status === 'good').length
+  const confirmedH = weekHours(tasks, true)
+  const waitingH = weekHours(tasks, false) - confirmedH
+  const summary = [
+    t(`family.sum.${st}`, { host }),
+    answered.length > 0 ? t('family.sum.streak', { good: goodCount, total: answered.length }) : null,
+    confirmedH > 0 ? t('family.sum.hours', { name: housemate, h: confirmedH, host }) : t('family.sum.noHours'),
+    waitingH > 0 ? t('family.sum.waiting', { h: waitingH, host }) : null,
+    t('family.sum.next', { what: t('family.dinner'), when: t('family.sunday') }),
+  ].filter(Boolean) as string[]
 
   return (
     <Page className="py-8">
@@ -155,6 +170,24 @@ export function FamilyDashboard() {
           </section>
         </div>
       </div>
+
+      {hasStay && (
+        <section aria-labelledby="sum-title" className="mt-6 rounded-card border border-line p-6">
+          <h2 id="sum-title" className="flex items-center gap-2 text-lg font-semibold">
+            <NotebookText size={20} aria-hidden />
+            {t('family.sum.title')}
+          </h2>
+          <ul className="mt-3 list-disc space-y-1.5 pl-5 text-base">
+            {summary.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          <p className="mt-3 flex items-start gap-2 text-sm text-muted">
+            <Lock size={14} aria-hidden className="mt-0.5 shrink-0" />
+            {t('family.sum.source')}
+          </p>
+        </section>
+      )}
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <Button

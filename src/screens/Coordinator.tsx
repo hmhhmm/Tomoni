@@ -10,10 +10,10 @@ import { Textarea } from '../components/ui/Field'
 import { useL } from '../lib/hooks'
 import { hoursOf } from '../data/pricing'
 import { RULES } from '../tokens'
+import { LADDER } from '../data/journey'
 import type { CaseRow, CheckinStatus } from '../data/types'
 
 const TONE = { healthy: 'teal', trial: 'purple', review: 'purple', attention: 'amber', alert: 'rose' } as const
-const LADDER = [1, 2, 3, 4] as const
 const DOT = { good: 'bg-teal-500', notgood: 'bg-amber-700', missed: 'bg-rose-700', pending: 'bg-soft' } as const
 
 export function Coordinator() {
@@ -279,7 +279,7 @@ export function Coordinator() {
 
               <div className="mt-4">
                 <p className="text-sm font-semibold">{t('coord.ladder')}</p>
-                <ol className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-4" aria-label={t('coord.ladder')}>
+                <ol className="mt-2 grid grid-cols-2 gap-1 sm:grid-cols-3" aria-label={t('coord.ladder')}>
                   {LADDER.map((n) => (
                     <li
                       key={n}
@@ -292,7 +292,7 @@ export function Coordinator() {
                 </ol>
                 <p className="mt-2 text-sm text-muted">{step === 0 ? t('coord.ladderNone') : t(`ladder.d${step}`)}</p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  <Button variant="secondary" size="sm" disabled={step >= 4} onClick={() => setCaseStep(sel, step + 1)}>
+                  <Button variant="secondary" size="sm" disabled={step >= LADDER.length} onClick={() => setCaseStep(sel, step + 1)}>
                     {step === 0 ? t('coord.ladderStart') : t('coord.ladderNext')}
                   </Button>
                   {step > 0 && (
