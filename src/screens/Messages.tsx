@@ -1,7 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Calendar, Check, HeartHandshake, MessageCircle, Send, ShieldAlert } from 'lucide-react'
+import {
+  ArrowLeft,
+  Calendar,
+  CalendarCheck,
+  CalendarPlus,
+  Check,
+  HeartHandshake,
+  LockKeyhole,
+  MessageCircle,
+  Send,
+  ShieldAlert,
+  Undo2,
+  UserX,
+} from 'lucide-react'
 import { useStore, tenantKey } from '../store'
 import { ChatBubble } from '../components/domain/ChatBubble'
 import { Avatar } from '../components/ui/Avatar'
@@ -10,9 +23,13 @@ import { FictionalTag, VerifiedBadge, EmptyState } from '../components/domain/Bi
 import { Page } from '../components/domain/Bits'
 import { PHRASES } from '../lib/guardrails'
 import { LISTINGS, APPLICANTS } from '../data/seed'
+import { MEET_SLOTS } from '../data/journey'
+import { CoordChat } from '../components/domain/CaseSafety'
+import { formatDayTime } from '../lib/format'
 import { useL } from '../lib/hooks'
 import { useUI } from '../ui'
 import type { Message, Side } from '../data/types'
+import { usePath } from '../lib/paths'
 
 const phrasesFor = (...ja: string[]) => ja.map((j) => PHRASES.find((p) => p.ja === j)!)
 const QUICK_REPLIES = {
@@ -46,6 +63,48 @@ function CareCard() {
   )
 }
 
+/** System notice posted when the host books a meet-up. The housemate confirms it here. */
+function MeetNotice({ msg, side, latest }: { msg: Message; side: Side; latest: boolean }) {
+  const { t } = useTranslation()
+  const p = usePath()
+  const lang = useStore((s) => s.lang)
+  const match = useStore((s) => s.match)
+  const confirmMeet = useStore((s) => s.confirmMeet)
+  const slot = MEET_SLOTS.find((s) => s.id === msg.meetSlot)
+  if (!slot) return null
+  // Only the newest notice for the booked time is live; older ones were replaced by an edit.
+  const live = latest && match.meetSlot === msg.meetSlot
+  const confirmed = live && !!match.meetConfirmed
+  return (
+    <div role="status" className="mx-auto flex w-full max-w-lg items-start gap-3 rounded-card border border-teal-100 bg-teal-50 p-4">
+      <CalendarCheck size={22} aria-hidden className="mt-0.5 shrink-0 text-teal-700" />
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold text-teal-700">{t('chat.meetTitle')}</p>
+        <p className="text-base">
+          {formatDayTime(slot.date(), lang)} · {t(`stay.place.${slot.place}`)}
+        </p>
+        {!live ? (
+          <p className="mt-1 text-sm text-muted">{t('chat.meetReplaced')}</p>
+        ) : confirmed ? (
+          <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-teal-700">
+            <Check size={16} aria-hidden /> {t('chat.meetConfirmed')}
+          </p>
+        ) : side === 'tenant' ? (
+          <Button className="mt-3" size="sm" variant="primary" icon={<Check size={16} aria-hidden />} onClick={confirmMeet}>
+            {t('chat.meetConfirm')}
+          </Button>
+        ) : (
+          <p className="mt-1 text-sm text-muted">{t('chat.meetWaiting')}</p>
+        )}
+        <Link to={p('/stay')} className="mt-2 block text-sm font-semibold underline underline-offset-2">
+          {t('chat.viewStay')}
+        </Link>
+      </div>
+      <span className="shrink-0 text-xs text-muted">{msg.when}</span>
+    </div>
+  )
+}
+
 function MoneyCard({ kind = 'money' }: { kind?: 'money' | 'romance' }) {
   const { t } = useTranslation()
   const nav = useNavigate()
@@ -65,26 +124,30 @@ function MoneyCard({ kind = 'money' }: { kind?: 'money' | 'romance' }) {
 
 export function Messages() {
   const { t } = useTranslation()
+  const p = usePath()
   const text = useL()
   const nav = useNavigate()
   const { id } = useParams()
-  const { persona, threads, unread, applicants, applications, markRead, sendMessage } = useStore()
+  const { persona, lang, threads, unread, applicants, applications, markRead, sendMessage, setApplicantStatus, match } = useStore()
   const side: Side = persona === 'host' ? 'host' : 'tenant'
 
   // Conversations for this persona: [threadKey, routeId, name, hue, verified, last message]
   const convos = useMemo(() => {
     if (side === 'host') {
-      return applicants
-        .filter((a) => a.status !== 'declined' || (threads[a.id]?.length ?? 0) > 1)
-        .map((a) => ({
-          key: a.id,
-          route: a.id,
-          name: a.name,
-          sub: text(a.occupation),
-          hue: a.hue,
-          verified: a.verified,
-          last: threads[a.id]?.[threads[a.id].length - 1],
-        }))
+      return (
+        applicants
+          // Rejected people leave the inbox, except the conversation open right now (so Undo is still there).
+          .filter((a) => a.status !== 'declined' || (threads[a.id]?.length ?? 0) > 1 || a.id === id)
+          .map((a) => ({
+            key: a.id,
+            route: a.id,
+            name: a.name,
+            sub: text(a.occupation),
+            hue: a.hue,
+            verified: a.verified,
+            last: threads[a.id]?.[threads[a.id].length - 1],
+          }))
+      )
     }
     return LISTINGS.filter((l) => applications[l.id] && applications[l.id].status !== 'withdrawn').map((l) => ({
       key: tenantKey(l.id),
@@ -95,9 +158,12 @@ export function Messages() {
       verified: true,
       last: threads[tenantKey(l.id)]?.[threads[tenantKey(l.id)].length - 1],
     }))
-  }, [side, applicants, applications, threads, text])
+  }, [side, applicants, applications, threads, text, id])
 
-  const activeRoute = id ?? convos[0]?.route
+  // The housemate always has a private line to the coordinator, pinned at the top.
+  const activeRoute = id ?? convos[0]?.route ?? (side === 'tenant' ? 'coordinator' : undefined)
+  const coordOpen = side === 'tenant' && activeRoute === 'coordinator'
+  const coordUnreadN = useStore((s) => s.coordUnread.tenant)
   const active = convos.find((c) => c.route === activeRoute)
   const key = active?.key ?? ''
 
@@ -112,7 +178,8 @@ export function Messages() {
     endRef.current?.scrollIntoView({ block: 'end' })
   }, [thread.length, key])
 
-  const viewerLang = side === 'host' ? 'ja' : 'en'
+  // Chat reads in the language chosen for the page; the other language shows beneath.
+  const viewerLang = lang
   const chips = QUICK_REPLIES[side]
 
   const send = () => {
@@ -128,7 +195,7 @@ export function Messages() {
       </Page>
     )
   }
-  if (convos.length === 0) {
+  if (convos.length === 0 && side === 'host') {
     return (
       <Page className="py-10">
         <EmptyState
@@ -136,7 +203,7 @@ export function Messages() {
           title={t('chat.emptyTitle')}
           body={t('chat.emptyBody')}
           action={
-            <LinkButton to={side === 'host' ? '/host/people' : '/explore'} variant="dark">
+            <LinkButton to={side === 'host' ? '/saito/people' : '/aisha/explore'} variant="dark">
               {side === 'host' ? t('nav.people') : t('nav.explore')}
             </LinkButton>
           }
@@ -147,6 +214,15 @@ export function Messages() {
 
   const showList = !id // on small screens: list first, then thread
   const applicant = applicants.find((a) => a.id === key) ?? APPLICANTS[0]
+  const rejected = side === 'host' && applicant.status === 'declined'
+  const lastMeetId = [...thread].reverse().find((m) => m.event === 'meet')?.id
+  // The meet-up is the next step until one is booked with this person.
+  const meetBooked = match.applicantId === key && match.stage !== 'none' && match.stage !== 'ended' && (match.stage !== 'meet' || !!match.meetSlot)
+  const planMeet = () => {
+    if (applicant.status === 'new') setApplicantStatus(key, 'chatting')
+    useStore.getState().startMeeting(key)
+    nav(p('/stay'))
+  }
 
   return (
     <div className="mx-auto grid h-[calc(100dvh-5rem)] max-w-[1440px] grid-cols-1 lg:grid-cols-[360px_minmax(0,1fr)] lg:px-10 xl:px-20">
@@ -156,6 +232,29 @@ export function Messages() {
         aria-label={t('chat.inbox')}
       >
         <h1 className="px-5 pb-3 pt-6 text-[1.5rem] font-semibold">{t('nav.messages')}</h1>
+        {side === 'tenant' && (
+          <Link
+            to={p('/messages/coordinator')}
+            aria-current={coordOpen ? 'true' : undefined}
+            className={`flex items-center gap-3 border-b border-soft px-5 py-4 hover:bg-surface ${coordOpen ? 'bg-surface' : ''}`}
+          >
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-teal-50 text-teal-700">
+              <LockKeyhole size={22} aria-hidden />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-semibold">{t('coordChat.title')}</p>
+              <p className="truncate text-sm text-muted">{t('coordChat.sub')}</p>
+            </div>
+            {coordUnreadN > 0 && (
+              <span
+                className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs font-bold text-white"
+                aria-label={t('nav.unread', { n: coordUnreadN })}
+              >
+                {coordUnreadN}
+              </span>
+            )}
+          </Link>
+        )}
         <ul>
           {convos.map((c) => {
             const n = unread[side][c.key] ?? 0
@@ -163,7 +262,7 @@ export function Messages() {
             return (
               <li key={c.route}>
                 <Link
-                  to={`/messages/${c.route}`}
+                  to={p(`/messages/${c.route}`)}
                   aria-current={on ? 'true' : undefined}
                   className={`flex items-center gap-3 border-b border-soft px-5 py-4 hover:bg-surface ${on ? 'bg-surface' : ''}`}
                 >
@@ -174,12 +273,18 @@ export function Messages() {
                       <span className="shrink-0 text-xs text-muted">{c.last?.when}</span>
                     </div>
                     <p className={`truncate text-sm ${n ? 'font-semibold text-ink' : 'text-muted'}`}>
-                      {c.last ? c.last[viewerLang] : t('chat.noMessages')}
+                      {c.last
+                        ? c.last.event === 'meetConfirmed'
+                          ? t('chat.meetConfirmed')
+                          : c.last.event
+                            ? t('chat.meetPreview')
+                            : c.last[viewerLang]
+                        : t('chat.noMessages')}
                     </p>
                   </div>
                   {n > 0 && (
                     <span
-                      className="grid h-5 min-w-5 place-items-center rounded-full bg-purple-600 px-1.5 text-xs font-bold text-white"
+                      className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs font-bold text-white"
                       aria-label={t('nav.unread', { n })}
                     >
                       {n}
@@ -194,11 +299,29 @@ export function Messages() {
 
       {/* Thread */}
       <section className={`${showList ? 'hidden' : 'flex'} min-h-0 min-w-0 flex-col lg:flex`} aria-label={t('chat.thread')}>
-        {active && (
+        {coordOpen && (
+          <>
+            <div className="flex items-center gap-3 border-b border-soft px-4 py-3 lg:px-6">
+              <Link
+                to={p('/messages')}
+                aria-label={t('common.back')}
+                className="grid h-10 w-10 place-items-center rounded-full hover:bg-surface lg:hidden"
+              >
+                <ArrowLeft size={20} aria-hidden />
+              </Link>
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-teal-50 text-teal-700">
+                <LockKeyhole size={20} aria-hidden />
+              </span>
+              <h2 className="text-base font-semibold">{t('coordChat.title')}</h2>
+            </div>
+            <CoordChat side="tenant" />
+          </>
+        )}
+        {!coordOpen && active && (
           <>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-soft px-4 py-3 lg:px-6">
               <Link
-                to="/messages"
+                to={p('/messages')}
                 aria-label={t('common.back')}
                 className="grid h-10 w-10 place-items-center rounded-full hover:bg-surface lg:hidden"
               >
@@ -212,51 +335,88 @@ export function Messages() {
                   {side === 'host' && <VerifiedBadge verified={applicant.verified} />}
                 </div>
               </div>
-              {side === 'host' && key !== '' && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  icon={<Calendar size={16} aria-hidden />}
-                  onClick={() => {
-                    useStore.getState().startMeeting(key)
-                    nav('/stay')
-                  }}
-                >
-                  {t('chat.schedule')}
-                </Button>
+              {side === 'host' && key !== '' && !rejected && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="!text-rose-700"
+                    icon={<UserX size={16} aria-hidden />}
+                    onClick={() => setApplicantStatus(key, 'declined')}
+                  >
+                    {t('people.reject')}
+                  </Button>
+                  {meetBooked && (
+                    <LinkButton to={p('/stay')} size="sm" variant="soft" icon={<CalendarCheck size={16} aria-hidden />}>
+                      {t('chat.viewStay')}
+                    </LinkButton>
+                  )}
+                </>
               )}
               {side === 'tenant' && key === 'a1' && (
-                <LinkButton to="/stay" size="sm" variant="secondary" icon={<Calendar size={16} aria-hidden />}>
+                <LinkButton to={p('/stay')} size="sm" variant="soft" icon={<Calendar size={16} aria-hidden />}>
                   {t('chat.viewStay')}
                 </LinkButton>
               )}
             </div>
-            <p className="bg-purple-50 px-4 py-2 text-sm text-purple-700 lg:px-6">
+            <p className="bg-brand-50 px-4 py-2 text-sm text-brand-700 lg:px-6">
               {t('chat.banner', { you: t(`lang.${viewerLang}`), them: t(`lang.${viewerLang === 'ja' ? 'en' : 'ja'}`) })}
             </p>
 
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-5 lg:px-6" aria-live="polite">
-              {thread.map((m) => (
-                <div key={m.id} className="space-y-3">
-                  <ChatBubble msg={m} viewer={side} />
-                  {m.flag === 'care' && <CareCard />}
-                  {m.flag === 'money' && <MoneyCard />}
-                  {m.flag === 'romance' && <MoneyCard kind="romance" />}
+              {thread.map((m) =>
+                m.event === 'meet' ? (
+                  <MeetNotice key={m.id} msg={m} side={side} latest={m.id === lastMeetId} />
+                ) : m.event === 'meetConfirmed' ? (
+                  <p key={m.id} role="status" className="flex items-center justify-center gap-1.5 text-sm font-medium text-teal-700">
+                    <Check size={16} aria-hidden /> {t('chat.meetConfirmedBy', { name: side === 'host' ? applicant.name : t('stay.you') })} · {m.when}
+                  </p>
+                ) : (
+                  <div key={m.id} className="space-y-3">
+                    <ChatBubble msg={m} viewer={side} lang={viewerLang} />
+                    {m.flag === 'care' && <CareCard />}
+                    {m.flag === 'money' && <MoneyCard />}
+                    {m.flag === 'romance' && <MoneyCard kind="romance" />}
+                  </div>
+                ),
+              )}
+              {rejected && (
+                <div
+                  role="status"
+                  className="mx-auto flex w-full max-w-lg flex-wrap items-center gap-3 rounded-card border border-line bg-surface p-4"
+                >
+                  <UserX size={20} aria-hidden className="text-rose-700" />
+                  <p className="flex-1 text-base">{t('chat.rejected', { name: applicant.name })}</p>
+                  <Button size="sm" variant="secondary" icon={<Undo2 size={16} aria-hidden />} onClick={() => setApplicantStatus(key, 'new')}>
+                    {t('people.undoReject')}
+                  </Button>
                 </div>
-              ))}
+              )}
               <div ref={endRef} />
             </div>
 
             <div className="border-t border-soft bg-white px-4 py-3 lg:px-6">
+              {side === 'host' && !rejected && !meetBooked && (
+                <div className="mb-3 flex flex-wrap items-center gap-3 rounded-card border border-brand-200 bg-brand-50 p-3">
+                  <CalendarPlus size={22} aria-hidden className="shrink-0 text-brand-700" />
+                  <p className="min-w-0 flex-1 text-sm text-brand-700">
+                    <strong className="block text-base">{t('chat.meetNudgeTitle')}</strong>
+                    {t('chat.meetNudge', { name: applicant.name })}
+                  </p>
+                  <Button size="sm" variant="primary" onClick={planMeet}>
+                    {t('chat.schedule')}
+                  </Button>
+                </div>
+              )}
               <div className="scroll-hide -mx-1 mb-3 flex gap-2 overflow-x-auto px-1">
                 {chips.map((c) => (
                   <button
                     key={c.ja}
                     type="button"
-                    onClick={() => setDraft(side === 'host' ? c.ja : c.en)}
+                    onClick={() => setDraft(c[viewerLang])}
                     className="h-10 shrink-0 whitespace-nowrap rounded-full border border-line px-4 text-sm font-medium hover:border-ink"
                   >
-                    {side === 'host' ? c.ja : c.en}
+                    {c[viewerLang]}
                   </button>
                 ))}
               </div>

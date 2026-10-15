@@ -15,6 +15,7 @@ import {
   UserRound,
   LayoutGrid,
   SearchX,
+  Heart,
 } from 'lucide-react'
 import { Page, EmptyState, Notice } from '../../components/domain/Bits'
 import { ListingCard } from '../../components/domain/ListingCard'
@@ -24,6 +25,7 @@ import { Button } from '../../components/ui/Button'
 import { Pill } from '../../components/ui/Chip'
 import { Select } from '../../components/ui/Field'
 import { companionOnly as isCompanionOnly, useStore } from '../../store'
+import { CurrentStayCard, useHasStay } from '../../components/domain/CurrentStayCard'
 import { useListings } from '../../lib/listings'
 import { useL, yen, monthLabel } from '../../lib/hooks'
 import { AREAS } from '../../data/seed'
@@ -100,6 +102,8 @@ export function Explore() {
   const text = useL()
   const lang = useStore((s) => s.lang)
   const tenant = useStore((s) => s.tenant)
+  const saved = useStore((s) => s.saved)
+  const hasStay = useHasStay()
   const all = useListings()
   const f = useFilters()
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -111,9 +115,11 @@ export function Explore() {
   }, [])
 
   const showMap = f.get('map') === '1'
+  // Saved rooms are a view of this page (?saved=1), not a separate tab.
+  const savedOnly = f.get('saved') === '1'
   const sort = f.get('sort', 'rec')
   const results = useMemo(() => {
-    const r = applyFilters(all, f, companionOnly)
+    const r = savedOnly ? all.filter((l) => saved.includes(l.id)) : applyFilters(all, f, companionOnly)
     const by: Record<string, (a: Listing, b: Listing) => number> = {
       cost: (a, b) => a.homeshareRent - b.homeshareRent,
       hours: (a, b) => hoursOf(a.helps) - hoursOf(b.helps),
@@ -137,12 +143,19 @@ export function Explore() {
     f.get('tier'),
     sort,
     companionOnly,
+    savedOnly,
+    saved,
   ])
 
   const activeFilters = ['min', 'max', 'hours', 'lang', 'gender', 'pets', 'walk', 'tier'].filter((k) => f.get(k)).length
 
   return (
     <>
+      {hasStay && (
+        <Page className="pt-6">
+          <CurrentStayCard />
+        </Page>
+      )}
       {/* Search pill + category row */}
       <div className="z-20 border-b border-soft bg-white lg:sticky lg:top-20">
         <Page>
@@ -224,7 +237,7 @@ export function Explore() {
               <button
                 type="submit"
                 aria-label={t('explore.searchBtn')}
-                className="m-1.5 grid h-12 w-12 shrink-0 place-items-center self-center justify-self-end rounded-full bg-gradient-to-r from-purple-600 to-purple-500 text-white transition hover:from-purple-700"
+                className="m-1.5 grid h-12 w-12 shrink-0 place-items-center self-center justify-self-end rounded-full bg-gradient-to-r from-brand-400 via-brand-600 to-brand-700 text-white transition hover:brightness-95"
               >
                 <Search size={20} aria-hidden />
                 <span className="sr-only">{t('explore.searchBtn')}</span>
@@ -276,9 +289,18 @@ export function Explore() {
         )}
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-base font-semibold" aria-live="polite">
-            {t('explore.count', { count: results.length })}
+            {savedOnly ? t('saved.title') : t('explore.count', { count: results.length })}
           </h1>
           <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant={savedOnly ? 'soft' : 'secondary'}
+              size="sm"
+              aria-pressed={savedOnly}
+              icon={<Heart size={16} aria-hidden className={savedOnly ? 'fill-brand-600 text-brand-600' : ''} />}
+              onClick={() => f.set({ saved: savedOnly ? null : '1' })}
+            >
+              {savedOnly ? t('saved.showAll') : t('saved.button', { n: saved.length })}
+            </Button>
             <label className="flex items-center gap-2 text-sm text-muted">
               <span>{t('explore.sort')}</span>
               <Select
@@ -314,6 +336,17 @@ export function Explore() {
               </div>
             ))}
           </div>
+        ) : savedOnly && results.length === 0 ? (
+          <EmptyState
+            icon={<Heart size={26} aria-hidden />}
+            title={t('saved.emptyTitle')}
+            body={t('saved.emptyBody')}
+            action={
+              <Button variant="dark" onClick={() => f.set({ saved: null })}>
+                {t('saved.explore')}
+              </Button>
+            }
+          />
         ) : results.length === 0 ? (
           <EmptyState
             icon={<SearchX size={26} aria-hidden />}

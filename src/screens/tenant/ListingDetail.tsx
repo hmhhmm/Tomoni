@@ -52,7 +52,7 @@ export function ListingDetail() {
     return (
       <Page className="py-16">
         <Notice tone="amber" title={t('detail.notFound')}>
-          <Link className="font-semibold underline" to="/explore">
+          <Link className="font-semibold underline" to="/aisha/explore">
             {t('detail.backToExplore')}
           </Link>
         </Notice>
@@ -83,7 +83,7 @@ export function ListingDetail() {
     apply(l.id, intro)
     setApplyOpen(false)
     say(t('detail.sent'))
-    nav(`/messages/${l.id}`)
+    nav(`/aisha/messages/${l.id}`)
   }
 
   const highlights = [
@@ -100,7 +100,7 @@ export function ListingDetail() {
     <Page className="pb-10 pt-6">
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
-          <Link to="/explore" className="mb-3 inline-flex items-center gap-1.5 text-base font-medium underline-offset-4 hover:underline">
+          <Link to="/aisha/explore" className="mb-3 inline-flex items-center gap-1.5 text-base font-medium underline-offset-4 hover:underline">
             <ArrowLeft size={18} aria-hidden />
             {t('common.back')}
           </Link>
@@ -112,7 +112,7 @@ export function ListingDetail() {
           onClick={() => toggleSaved(l.id)}
           className="mt-9 flex h-11 items-center gap-2 rounded-lg px-3 text-base font-semibold underline-offset-4 hover:bg-surface"
         >
-          <Heart size={20} aria-hidden className={isSaved ? 'fill-purple-600 text-purple-600' : ''} />
+          <Heart size={20} aria-hidden className={isSaved ? 'fill-brand-600 text-brand-600' : ''} />
           {isSaved ? t('detail.saved') : t('detail.save')}
         </button>
       </div>
@@ -313,7 +313,7 @@ export function ListingDetail() {
                     <Check size={18} aria-hidden />
                     {t(`detail.status.${app.status}`)}
                   </p>
-                  <LinkButton to={`/messages/${l.id}`} variant="dark" block icon={<MessageCircle size={18} aria-hidden />}>
+                  <LinkButton to={`/aisha/messages/${l.id}`} variant="dark" block icon={<MessageCircle size={18} aria-hidden />}>
                     {t('detail.openChat')}
                   </LinkButton>
                   {app.status !== 'declined' && (
@@ -386,7 +386,7 @@ export function ListingDetail() {
         <Textarea id="intro" rows={5} value={intro} onChange={(e) => setIntro(e.target.value)} />
         <p className="mt-1.5 text-sm text-muted">{t('detail.introHint')}</p>
         <label className="mt-5 flex cursor-pointer items-start gap-3 text-base">
-          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-1 h-5 w-5 accent-purple-600" />
+          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-1 h-5 w-5 accent-brand-600" />
           <span>{t('detail.agree', { cap: RULES.weeklyHourCap })}</span>
         </label>
       </Modal>

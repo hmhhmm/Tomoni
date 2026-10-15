@@ -31,13 +31,13 @@ export function Account() {
       <ul className="grid gap-3 sm:grid-cols-2">
         {[
           {
-            to: '/account/verify',
+            to: '/aisha/account/verify',
             icon: ShieldCheck,
             title: t('account.verify'),
             sub: tenant.verifyStep >= 4 ? t('account.verified') : t('account.inProgress'),
           },
-          { to: '/log', icon: Gauge, title: t('account.tracker'), sub: t('account.trackerSub') },
-          { to: '/pulse', icon: HeartPulse, title: t('account.pulse'), sub: pulse ? t('account.pulseDone') : t('account.pulseSub') },
+          { to: '/aisha/log', icon: Gauge, title: t('account.tracker'), sub: t('account.trackerSub') },
+          { to: '/aisha/pulse', icon: HeartPulse, title: t('account.pulse'), sub: pulse ? t('account.pulseDone') : t('account.pulseSub') },
           { to: '/safety?report=1', icon: Flag, title: t('account.report'), sub: t('account.reportSub') },
         ].map((r) => (
           <li key={r.to}>

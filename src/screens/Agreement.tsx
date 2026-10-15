@@ -17,6 +17,7 @@ import { yen } from '../lib/hooks'
 import { useUI } from '../ui'
 import type { HelpId } from '../data/types'
 import { RULES } from '../tokens'
+import { StayTabs } from '../components/domain/StayTabs'
 
 export function Agreement() {
   const { t } = useTranslation()
@@ -40,13 +41,15 @@ export function Agreement() {
 
   if (match.stage === 'none' || (viewer === 'tenant' && match.applicantId !== 'a1')) {
     return (
-      <Page narrow className="py-10">
+      <Page className="py-8">
+        <StayTabs />
         <EmptyState
+          align="left"
           icon={<FileSignature size={26} aria-hidden />}
           title={t('pact.emptyTitle')}
           body={t('pact.emptyBody')}
           action={
-            <LinkButton to={viewer === 'host' ? '/host/people' : '/explore'} variant="dark">
+            <LinkButton to={viewer === 'host' ? '/saito/people' : '/aisha/explore'} variant="dark">
               {viewer === 'host' ? t('nav.people') : t('nav.explore')}
             </LinkButton>
           }
@@ -207,6 +210,7 @@ export function Agreement() {
 
   return (
     <Page className="py-8">
+      <StayTabs />
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-[1.75rem] font-semibold">{t('pact.title')}</h1>
         <Chip tone="amber">{t('pact.watermark')}</Chip>
@@ -321,7 +325,7 @@ export function Agreement() {
                 <Notice tone="teal" live icon={<PartyPopper size={22} aria-hidden className="text-teal-700" />} title={t('pact.done')}>
                   {t('pact.doneBody')}
                 </Notice>
-                <Button className="mt-3" block variant="dark" onClick={() => nav(viewer === 'host' ? '/host/checkin' : '/log')}>
+                <Button className="mt-3" block variant="dark" onClick={() => nav(viewer === 'host' ? '/saito/checkin' : '/aisha/log')}>
                   {viewer === 'host' ? t('pact.toCheckin') : t('pact.toLog')}
                 </Button>
               </div>

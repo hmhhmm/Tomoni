@@ -15,7 +15,7 @@ export function Wizard({
   onNext,
   nextLabel,
   nextDisabled,
-  exitTo = '/host',
+  exitTo = '/saito',
 }: {
   step: number
   total: number

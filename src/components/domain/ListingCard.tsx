@@ -34,7 +34,7 @@ export function ListingCard({ l, highlight = false }: { l: Listing; highlight?: 
         >
           {SCENES.map((s) => (
             <li key={s} className="h-full w-full shrink-0 snap-center">
-              <Link to={`/rooms/${l.id}`} tabIndex={-1} aria-hidden className="block h-full">
+              <Link to={`/aisha/rooms/${l.id}`} tabIndex={-1} aria-hidden className="block h-full">
                 <Photo hue={l.hue} scene={s} />
               </Link>
             </li>
@@ -50,7 +50,7 @@ export function ListingCard({ l, highlight = false }: { l: Listing; highlight?: 
           aria-label={saved ? t('card.unsave', { name: text(l.hostName) }) : t('card.save', { name: text(l.hostName) })}
           className="absolute right-2 top-2 grid h-10 w-10 place-items-center rounded-full transition hover:scale-110"
         >
-          <Heart size={24} aria-hidden className={saved ? 'fill-purple-600 text-purple-600' : 'fill-black/40 text-white'} strokeWidth={2} />
+          <Heart size={24} aria-hidden className={saved ? 'fill-brand-600 text-brand-600' : 'fill-black/40 text-white'} strokeWidth={2} />
         </button>
         {i > 0 && (
           <button
@@ -78,7 +78,7 @@ export function ListingCard({ l, highlight = false }: { l: Listing; highlight?: 
           ))}
         </div>
       </div>
-      <Link to={`/rooms/${l.id}`} className="mt-3 block rounded-md focus-visible:outline-offset-4">
+      <Link to={`/aisha/rooms/${l.id}`} className="mt-3 block rounded-md focus-visible:outline-offset-4">
         <div className="flex items-start justify-between gap-2">
           <h2 className="text-base font-semibold leading-snug">
             {text(l.area)} · {t('card.hostedBy', { name: text(l.hostName) })}

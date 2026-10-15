@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 const tones = {
   neutral: 'border-line bg-white text-ink',
-  purple: 'border-purple-100 bg-purple-50 text-purple-700',
+  brand: 'border-brand-100 bg-brand-50 text-brand-700',
   teal: 'border-teal-100 bg-teal-50 text-teal-700',
   amber: 'border-amber-200 bg-amber-50 text-amber-700',
   rose: 'border-rose-200 bg-rose-50 text-rose-700',

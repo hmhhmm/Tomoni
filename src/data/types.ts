@@ -68,15 +68,20 @@ export interface Message {
   when: string
   flag?: 'care' | 'money' | 'romance'
   untranslated?: boolean
+  /** A system notice in the thread instead of a person's message (rendered from `meetSlot`). */
+  event?: 'meet' | 'meetConfirmed'
+  meetSlot?: string
 }
 
 export interface Flag {
   id: string
   /** null when the flag comes from a conversation before any match. */
   caseId: string | null
-  kind: 'money' | 'care' | 'romance' | 'report' | 'notgood'
+  kind: 'money' | 'care' | 'romance' | 'report' | 'notgood' | 'family' | 'pulse' | 'private'
   text: string
   when: string
+  /** ISO time the flag was raised; drives the response deadline (lib/sla.ts). */
+  at?: string
   resolved?: boolean
 }
 
@@ -85,7 +90,7 @@ export interface CaseRow {
   household: Pair
   tenant: string
   area: Pair
-  status: 'healthy' | 'trial' | 'review' | 'attention' | 'alert'
+  status: 'healthy' | 'trial' | 'review' | 'attention' | 'alert' | 'paused'
   week: number
   avgHours: number
   checkins: CheckinStatus[]
@@ -93,6 +98,18 @@ export interface CaseRow {
   /** Coordinator time spent on the case so far (illustrative for seeded cases). */
   coordMinutes: number
 }
+
+/** Private housemate ↔ coordinator message. The host never sees this thread. */
+export interface CoordMessage {
+  id: string
+  from: 'tenant' | 'coord'
+  /** Coordinator messages are written in both languages; the housemate's are shown as typed. */
+  text: Pair | string
+  when: string
+}
+
+export type ReferralKind = 'family' | 'careManager' | 'municipal' | 'police'
+export type SafeguardKey = 'metAlone' | 'refs' | 'homeCheck'
 
 export interface TaskEntry {
   id: string

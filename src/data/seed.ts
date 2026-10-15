@@ -1,4 +1,18 @@
-import type { Applicant, CaseRow, CheckinStatus, Flag, HelpId, Helps, Listing, ListingDraft, Message, Slot, TaskEntry, TenantProfile } from './types'
+import type {
+  Applicant,
+  CaseRow,
+  CheckinStatus,
+  CoordMessage,
+  Flag,
+  HelpId,
+  Helps,
+  Listing,
+  ListingDraft,
+  Message,
+  Slot,
+  TaskEntry,
+  TenantProfile,
+} from './types'
 
 export const HELP_ORDER: HelpId[] = ['groceries', 'garden', 'cooking', 'company', 'walks', 'parcels']
 export const HELP_DEFAULT: Record<HelpId, { h: number; slot: Slot }> = {
@@ -456,7 +470,48 @@ export const SEED_CASES: CaseRow[] = [
   },
 ]
 
-export const SEED_FLAGS: Flag[] = []
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3600_000).toISOString()
+
+/** Illustrative open items on other cases, so the desk shows a due and an overdue deadline. */
+export const SEED_FLAGS = (): Flag[] => [
+  {
+    id: 'fs1',
+    caseId: 'c4',
+    kind: 'report',
+    text: 'The heating has been off for two days and I did not want to bother her.',
+    when: 'Tue',
+    at: hoursAgo(30),
+  },
+  {
+    id: 'fs2',
+    caseId: 'c2',
+    kind: 'family',
+    text: 'My mother sounds tired on the phone. Could someone visit this week?',
+    when: 'Mon',
+    at: hoursAgo(50),
+  },
+]
+
+/** The coordinator opens the private channel with a short hello. */
+export const SEED_COORD_THREAD: CoordMessage[] = [
+  {
+    id: 'cm0',
+    from: 'coord',
+    text: {
+      en: 'Hi Aisyah, this is your Tomoni coordinator. This chat is private: Mrs Sato cannot see it. Message me any time about anything, big or small.',
+      ja: 'Aisyahさん、Tomoniのコーディネーターです。このチャットは非公開で、佐藤さんには見えません。大きなことでも小さなことでも、いつでもメッセージしてください。',
+    },
+    when: '09:00',
+  },
+]
+
+/** Anonymous monthly pulse answers from other homes (illustrative), pooled with the live one. */
+export const SEED_PULSES: Record<string, string>[] = [
+  { q1: 'great', q2: 'great', q3: 'great' },
+  { q1: 'fine', q2: 'great', q3: 'great' },
+  { q1: 'great', q2: 'fine', q3: 'great' },
+  { q1: 'fine', q2: 'notgreat', q3: 'fine' },
+]
 
 export const livingTasks = (): TaskEntry[] => [
   { id: 't1', help: 'groceries', hours: 2, date: daysAgo(2), status: 'confirmed' },

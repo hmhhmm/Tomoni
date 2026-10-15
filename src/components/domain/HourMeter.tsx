@@ -50,7 +50,7 @@ export function HourMeter({
             cy={size / 2}
             r={r}
             fill="none"
-            stroke={full ? '#0B7A6B' : '#7050F8'}
+            stroke={full ? '#0B7A6B' : '#E31C5F'}
             strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={c}
@@ -87,7 +87,7 @@ export function HourMeter({
             key={i}
             className="h-full flex-1 rounded-full"
             initial={false}
-            animate={{ backgroundColor: i < value ? (full ? '#14A592' : '#7050F8') : '#EBEBEB' }}
+            animate={{ backgroundColor: i < value ? (full ? '#14A592' : '#E31C5F') : '#EBEBEB' }}
             transition={{ duration: 0.2, delay: i < value ? i * 0.015 : 0 }}
           />
         ))}

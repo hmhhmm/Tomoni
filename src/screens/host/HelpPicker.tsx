@@ -38,8 +38,8 @@ export function HelpPicker() {
       total={4}
       title={t('help.title')}
       lede={t('help.lede')}
-      onBack={() => nav('/host/create/3')}
-      onNext={() => nav('/host/people')}
+      onBack={() => nav('/saito/create/3')}
+      onNext={() => nav('/saito/people')}
       nextLabel={t('help.save')}
       nextDisabled={total === 0}
     >
@@ -124,7 +124,7 @@ export function HelpPicker() {
             ))}
           </ul>
         </section>
-        <Notice tone="purple" title={t('help.hostDecides')}>
+        <Notice tone="brand" title={t('help.hostDecides')}>
           {t('help.hostDecidesBody')}
         </Notice>
       </div>

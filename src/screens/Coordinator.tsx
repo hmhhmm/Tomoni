@@ -1,9 +1,23 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { AlertTriangle, ArrowLeft, Check, Clock, FileSignature, Flag, HeartPulse, MessageSquareWarning, Timer, Users, Globe } from 'lucide-react'
-import { agreedHelps, useStore, missedRun, weekHours } from '../store'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Check,
+  FileSignature,
+  Flag,
+  HeartPulse,
+  LockKeyhole,
+  MessageSquareWarning,
+  PhoneCall,
+  Timer,
+  Users,
+} from 'lucide-react'
+import { agreedHelps, safeguardsDone, useStore, missedRun, weekHours } from '../store'
+import { CoordChat, ReferralPanel, SafeguardPanel } from '../components/domain/CaseSafety'
 import { Wordmark } from '../components/layout/Wordmark'
+import { LangSelect } from '../components/layout/LangSelect'
 import { Chip } from '../components/ui/Chip'
 import { Button } from '../components/ui/Button'
 import { Textarea } from '../components/ui/Field'
@@ -11,9 +25,20 @@ import { useL } from '../lib/hooks'
 import { hoursOf } from '../data/pricing'
 import { RULES } from '../tokens'
 import { LADDER } from '../data/journey'
-import type { CaseRow, CheckinStatus } from '../data/types'
+import type { CaseRow, CheckinStatus, Flag as FlagT } from '../data/types'
+import { SEED_PULSES } from '../data/seed'
+import { hoursLeft, isSafety } from '../lib/sla'
 
-const TONE = { healthy: 'teal', trial: 'purple', review: 'purple', attention: 'amber', alert: 'rose' } as const
+const TONE = { healthy: 'teal', trial: 'brand', review: 'brand', attention: 'amber', alert: 'rose', paused: 'amber' } as const
+/** Detail banner colour follows the case status. */
+const BANNER = {
+  healthy: 'border-teal-100 bg-teal-50',
+  trial: 'border-brand-100 bg-brand-50',
+  review: 'border-brand-100 bg-brand-50',
+  attention: 'border-amber-200 bg-amber-50',
+  alert: 'border-rose-200 bg-rose-50',
+  paused: 'border-amber-200 bg-amber-50',
+} as const
 const DOT = { good: 'bg-teal-500', notgood: 'bg-amber-700', missed: 'bg-rose-700', pending: 'bg-soft' } as const
 
 export function Coordinator() {
@@ -24,8 +49,6 @@ export function Coordinator() {
     checkins,
     flags,
     tasks,
-    lang,
-    setLang,
     caseNotes,
     setCaseNote,
     markMissed,
@@ -40,6 +63,10 @@ export function Coordinator() {
     setCaseStep,
     caseMinutes,
     addCaseMinutes,
+    pulse,
+    paused,
+    safeguards,
+    coordUnread,
   } = useStore()
   const [sel, setSel] = useState('c1')
   useEffect(() => {
@@ -56,11 +83,23 @@ export function Coordinator() {
         const live = c.id === 'c1'
         const hasFlag = open.some((f) => f.caseId === c.id)
         const base: CaseRow['status'] = live ? (match.stage === 'living' ? 'healthy' : awaitingApproval ? 'review' : 'trial') : c.status
-        const status: CaseRow['status'] = missedRun(hist) >= 2 ? 'alert' : hasFlag ? 'attention' : base
+        const status: CaseRow['status'] = missedRun(hist) >= 2 ? 'alert' : paused[c.id] ? 'paused' : hasFlag ? 'attention' : base
         return { ...c, checkins: hist, status, week: live ? Math.max(1, hist.length) : c.week, avgHours: live ? weekHours(tasks, true) : c.avgHours }
       }),
-    [cases, checkins, open, tasks, match.stage, awaitingApproval],
+    [cases, checkins, open, tasks, match.stage, awaitingApproval, paused],
   )
+
+  const flagBody = (f: FlagT) =>
+    f.kind === 'pulse'
+      ? t('coord.pulseFlag', {
+          qs: f.text
+            .split(',')
+            .map((q) => `“${t(`pulse.${q}`)}”`)
+            .join(', '),
+        })
+      : f.kind === 'family'
+        ? `${t('names.emi')}: “${f.text}”`
+        : `${f.caseId ? '' : `${t('coord.preMatch')}: `}“${f.text}”`
 
   const alerts = [
     ...(awaitingApproval
@@ -74,6 +113,7 @@ export function Coordinator() {
             title: t('coord.approveAlert'),
             body: t('coord.approveAlertBody'),
             when: '',
+            flag: null as FlagT | null,
           },
         ]
       : []),
@@ -88,24 +128,43 @@ export function Coordinator() {
         title: t('coord.alertMissed'),
         body: `${text(r.household)}: ${t('coord.alertMissedBody')}`,
         when: '',
+        flag: null as FlagT | null,
       })),
-    ...open.map((f) => ({
-      id: f.id,
-      caseId: f.caseId,
-      flagId: f.id as string | null,
-      icon: f.kind === 'report' ? Flag : MessageSquareWarning,
-      tone: (f.kind === 'notgood' || f.kind === 'report' ? 'amber' : 'rose') as 'amber' | 'rose',
-      title: t(`coord.flag.${f.kind}`),
-      body: `${f.caseId ? '' : `${t('coord.preMatch')}: `}“${f.text}”`,
-      when: f.when,
-    })),
+    // Open flags, most urgent deadline first.
+    ...[...open]
+      .sort((x, y) => (hoursLeft(x) ?? 1e9) - (hoursLeft(y) ?? 1e9))
+      .map((f) => ({
+        id: f.id,
+        caseId: f.caseId,
+        flagId: f.id as string | null,
+        icon:
+          f.kind === 'report'
+            ? Flag
+            : f.kind === 'family'
+              ? Users
+              : f.kind === 'pulse'
+                ? HeartPulse
+                : f.kind === 'private'
+                  ? LockKeyhole
+                  : MessageSquareWarning,
+        tone: (['notgood', 'report', 'family', 'pulse', 'private'].includes(f.kind) ? 'amber' : 'rose') as 'amber' | 'rose',
+        title: t(`coord.flag.${f.kind}`),
+        body: flagBody(f),
+        when: f.when,
+        flag: f as FlagT | null,
+      })),
   ]
 
-  const answered = rows.flatMap((r) => r.checkins).filter((s) => s !== 'pending')
-  const rate = Math.round((answered.filter((s) => s !== 'missed').length / Math.max(1, answered.length)) * 100)
-  const avg = (rows.reduce((a, r) => a + r.avgHours, 0) / rows.length).toFixed(1)
-  const coordAvg = (rows.reduce((a, r) => a + (caseMinutes[r.id] ?? 0), 0) / rows.length / 60).toFixed(1)
   const step = caseStep[sel] ?? 0
+  // Anonymous pulse: pooled across homes, never tied to a case or a name.
+  const pulses = [...SEED_PULSES, ...(pulse ? [pulse] : [])]
+  const caseFlags = open.filter((f) => f.caseId === sel)
+  const detailRef = useRef<HTMLElement>(null)
+  const open_ = (id: string) => {
+    setSel(id)
+    // On narrow screens the detail sits below the table; bring it into view.
+    if (window.matchMedia('(max-width: 1023px)').matches) requestAnimationFrame(() => detailRef.current?.scrollIntoView({ behavior: 'smooth' }))
+  }
   const spent = caseMinutes[sel] ?? 0
   const agreed = agreedHelps({ pactHelps, declined })
   const current = rows.find((r) => r.id === sel)!
@@ -117,18 +176,10 @@ export function Coordinator() {
         <div className="mx-auto flex h-16 max-w-[1440px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-10">
           <div className="flex items-center gap-3">
             <Wordmark />
-            <Chip tone="purple">{t('coord.concept')}</Chip>
+            <Chip tone="brand">{t('coord.concept')}</Chip>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setLang(lang === 'en' ? 'ja' : 'en')}
-              className="flex h-11 items-center gap-2 rounded-full px-3 text-base font-medium hover:bg-surface"
-            >
-              <Globe size={18} aria-hidden />
-              <span className="sr-only">{t('lang.toggleLabel')}: </span>
-              {lang === 'en' ? '日本語' : 'English'}
-            </button>
+            <LangSelect />
             <Link to="/" className="inline-flex h-11 items-center gap-2 rounded-btn bg-ink px-4 text-base font-semibold text-white">
               <ArrowLeft size={16} aria-hidden /> {t('coord.back')}
             </Link>
@@ -142,120 +193,159 @@ export function Coordinator() {
           <p className="text-base text-muted">{t('coord.lede')}</p>
         </div>
 
-        <section aria-label={t('coord.impact')} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { icon: Users, label: t('coord.active'), value: String(rows.length) },
-            { icon: Clock, label: t('coord.avg'), value: `${avg} h` },
-            { icon: HeartPulse, label: t('coord.rate'), value: `${rate}%` },
-            { icon: Timer, label: t('coord.timePerCase'), value: `${coordAvg} h` },
-          ].map((s) => (
-            <div key={s.label} className="rounded-card border border-line bg-white p-5">
-              <s.icon size={20} aria-hidden className="text-muted" />
-              <p className="mt-2 text-[1.75rem] font-semibold tabular-nums leading-tight">{s.value}</p>
-              <p className="text-base text-muted">{s.label}</p>
-            </div>
-          ))}
-        </section>
-
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr] [&>*]:min-w-0">
-          <section aria-label={t('coord.cases')} className="rounded-card border border-line bg-white p-5">
-            <h2 className="mb-3 text-lg font-semibold">{t('coord.cases')}</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-base">
-                <thead>
-                  <tr className="border-b border-soft text-sm text-muted">
-                    <th className="py-2 pr-3 font-medium">{t('coord.household')}</th>
-                    <th className="pr-3 font-medium">{t('coord.status')}</th>
-                    <th className="pr-3 font-medium">{t('coord.week')}</th>
-                    <th className="font-medium">{t('coord.checkins')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((r) => (
-                    <tr key={r.id} className={`border-b border-soft last:border-0 ${sel === r.id ? 'bg-surface' : ''}`}>
-                      <td className="py-3 pr-3">
-                        <button
-                          type="button"
-                          onClick={() => setSel(r.id)}
-                          aria-pressed={sel === r.id}
-                          className="text-left font-semibold underline-offset-2 hover:underline"
-                        >
-                          {text(r.household)}
-                          <span className="mt-0.5 block text-sm font-normal text-muted">
-                            {t('coord.tenant')}: {r.tenant}
-                          </span>
-                        </button>
-                      </td>
-                      <td className="pr-3">
-                        <Chip tone={TONE[r.status]}>{t(`coord.st.${r.status}`)}</Chip>
-                      </td>
-                      <td className="pr-3 tabular-nums">{r.week}</td>
-                      <td>
-                        <span
-                          role="img"
-                          className="flex flex-wrap gap-1"
-                          aria-label={r.checkins.map((c) => t(`checkin.status.${c}`)).join(', ') || t('coord.none')}
-                        >
-                          {r.checkins.slice(-8).map((c, i) => (
-                            <span key={i} aria-hidden className={`h-3 w-3 rounded-full ${DOT[c]}`} />
-                          ))}
-                          {r.checkins.length === 0 && <span className="text-sm text-muted">—</span>}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
           <div className="min-w-0 space-y-6">
-            <section aria-label={t('coord.alerts')} className="rounded-card border border-line bg-white p-5">
-              <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-                {t('coord.alerts')} <Chip tone={alerts.length ? 'rose' : 'teal'}>{alerts.length}</Chip>
-              </h2>
-              {alerts.length === 0 ? (
-                <p className="text-base text-muted">{t('coord.noAlerts')}</p>
-              ) : (
-                <ul className="space-y-2" aria-live="polite">
-                  {alerts.map((a) => (
-                    <li
-                      key={a.id}
-                      className={`rounded-card border p-3 ${a.tone === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => a.caseId && setSel(a.caseId)}
-                        disabled={!a.caseId}
-                        className="flex w-full gap-3 text-left disabled:cursor-default"
+            <section aria-label={t('coord.cases')} className="rounded-card border border-line bg-white p-5">
+              <h2 className="mb-3 text-lg font-semibold">{t('coord.cases')}</h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-base">
+                  <thead>
+                    <tr className="border-b border-soft text-sm text-muted">
+                      <th className="py-2 pr-3 font-medium">{t('coord.household')}</th>
+                      <th className="pr-3 font-medium">{t('coord.status')}</th>
+                      <th className="pr-3 font-medium">{t('coord.week')}</th>
+                      <th className="font-medium">{t('coord.checkins')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <tr
+                        key={r.id}
+                        onClick={() => open_(r.id)}
+                        className={`cursor-pointer border-b border-soft transition-colors last:border-0 hover:bg-surface ${sel === r.id ? 'bg-surface shadow-[inset_3px_0_0_#222]' : ''}`}
                       >
-                        <a.icon size={20} aria-hidden className={`mt-0.5 shrink-0 ${a.tone === 'rose' ? 'text-rose-700' : 'text-amber-700'}`} />
-                        <span>
-                          <span className="block font-semibold">
-                            {a.title} {a.when && <span className="font-normal text-muted">· {a.when}</span>}
+                        <td className="py-3 pr-3">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              open_(r.id)
+                            }}
+                            aria-pressed={sel === r.id}
+                            className="text-left font-semibold underline-offset-2 hover:underline"
+                          >
+                            {text(r.household)}
+                            <span className="mt-0.5 block text-sm font-normal text-muted">
+                              {t('coord.tenant')}: {r.tenant}
+                            </span>
+                            {r.id === 'c1' && coordUnread.coord > 0 && (
+                              <span className="mt-1 inline-block rounded-full bg-teal-50 px-2 py-0.5 text-xs font-semibold text-teal-700">
+                                {t('coordChat.unread', { n: coordUnread.coord })}
+                              </span>
+                            )}
+                          </button>
+                        </td>
+                        <td className="pr-3">
+                          <Chip tone={TONE[r.status]}>{t(`coord.st.${r.status}`)}</Chip>
+                        </td>
+                        <td className="pr-3 tabular-nums">{r.week}</td>
+                        <td>
+                          <span
+                            role="img"
+                            className="flex flex-wrap gap-1"
+                            aria-label={r.checkins.map((c) => t(`checkin.status.${c}`)).join(', ') || t('coord.none')}
+                          >
+                            {r.checkins.slice(-8).map((c, i) => (
+                              <span key={i} aria-hidden className={`h-3 w-3 rounded-full ${DOT[c]}`} />
+                            ))}
+                            {r.checkins.length === 0 && <span className="text-sm text-muted">—</span>}
                           </span>
-                          <span className="block text-base">{a.body}</span>
-                        </span>
-                      </button>
-                      {a.flagId && (
-                        <Button
-                          className="ml-8 mt-2"
-                          variant="secondary"
-                          size="sm"
-                          icon={<Check size={16} aria-hidden />}
-                          onClick={() => resolveFlag(a.flagId!)}
-                        >
-                          {t('coord.resolve')}
-                        </Button>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </section>
 
-            <section aria-label={t('coord.detail')} className="rounded-card border border-line bg-white p-5">
-              <h2 className="text-lg font-semibold">{text(current.household)}</h2>
+            <section aria-labelledby="pulse-title" className="rounded-card border border-line bg-white p-5 lg:col-start-1">
+              <h2 id="pulse-title" className="text-lg font-semibold">
+                {t('coord.pulseTitle')}
+              </h2>
+              <p className="text-sm text-muted">{t('coord.pulseSub', { n: pulses.length })}</p>
+              <ul className="mt-4 space-y-3">
+                {(['q1', 'q2', 'q3'] as const).map((q) => {
+                  const n = (o: string) => pulses.filter((p) => p[q] === o).length
+                  return (
+                    <li key={q}>
+                      <p className="text-base font-medium">{t(`pulse.${q}`)}</p>
+                      <div className="mt-1 flex h-3 overflow-hidden rounded-full bg-soft" aria-hidden>
+                        <span className="bg-teal-500" style={{ width: `${(n('great') / pulses.length) * 100}%` }} />
+                        <span className="bg-brand-200" style={{ width: `${(n('fine') / pulses.length) * 100}%` }} />
+                        <span className="bg-amber-700" style={{ width: `${(n('notgreat') / pulses.length) * 100}%` }} />
+                      </div>
+                      <p className="mt-1 text-sm text-muted">
+                        {t('pulse.great')} {n('great')} · {t('pulse.fine')} {n('fine')} · {t('pulse.notgreat')} {n('notgreat')}
+                      </p>
+                    </li>
+                  )
+                })}
+              </ul>
+              <p className="mt-3 text-sm text-muted">{t('coord.pulseNote')}</p>
+            </section>
+          </div>
+
+          <div className="min-w-0 space-y-6">
+            <section ref={detailRef} aria-label={t('coord.detail')} className="scroll-mt-4 rounded-card border border-line bg-white p-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-lg font-semibold">{text(current.household)}</h2>
+                <Chip tone={TONE[current.status]}>{t(`coord.st.${current.status}`)}</Chip>
+              </div>
+
+              <div className={`mt-3 rounded-card border p-4 ${BANNER[current.status]}`} role="status">
+                <p className="font-semibold">{t(`coord.why.${current.status}Title`, { week: current.week })}</p>
+                <p className="mt-1 text-base">{t(`coord.why.${current.status}`, { tenant: current.tenant })}</p>
+                {current.status === 'alert' && (
+                  <Button
+                    className="mt-3"
+                    size="sm"
+                    variant="dark"
+                    icon={<PhoneCall size={16} aria-hidden />}
+                    onClick={() => {
+                      setCaseStep(sel, Math.max(step, 2))
+                      addCaseMinutes(sel, 15)
+                    }}
+                  >
+                    {t('coord.logCall')}
+                  </Button>
+                )}
+                {caseFlags.length > 0 && (
+                  <ul className="mt-3 space-y-2">
+                    {caseFlags.map((f) => (
+                      <li key={f.id} className="flex flex-wrap items-center gap-2 rounded-btn bg-white/70 p-2 text-sm">
+                        <span className="min-w-0 flex-1">
+                          <strong>{t(`coord.flag.${f.kind}`)}</strong> · {flagBody(f)} <Due f={f} />
+                        </span>
+                        <Button size="sm" variant="secondary" icon={<Check size={14} aria-hidden />} onClick={() => resolveFlag(f.id)}>
+                          {t('coord.resolve')}
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <dl className="mt-4 grid grid-cols-2 gap-3 text-base">
+                {[
+                  [t('coord.tenant'), current.tenant],
+                  [t('coord.area'), text(current.area)],
+                  [t('coord.week'), String(current.week)],
+                  [t('coord.hoursWeek'), `${current.avgHours} h`],
+                  [
+                    t('coord.checkins'),
+                    t('coord.checkinsCount', {
+                      ok: current.checkins.filter((c) => c === 'good').length,
+                      n: current.checkins.filter((c) => c !== 'pending').length,
+                    }),
+                  ],
+                  [t('coord.timeSpent'), t('coord.timeValue', { h: Math.floor(spent / 60), m: spent % 60 })],
+                ].map(([k, v]) => (
+                  <div key={k} className="rounded-btn bg-surface px-3 py-2">
+                    <dt className="text-sm text-muted">{k}</dt>
+                    <dd className="font-semibold">{v}</dd>
+                  </div>
+                ))}
+              </dl>
 
               {sel === 'c1' && awaitingApproval && (
                 <div className="mt-3 rounded-card border border-amber-200 bg-amber-50 p-4">
@@ -271,10 +361,30 @@ export function Coordinator() {
                   <p className="mt-2 text-sm text-muted">
                     {t('coord.approveTotal', { total: hoursOf(agreed), cap: RULES.weeklyHourCap, n: declined.length })}
                   </p>
-                  <Button className="mt-3" variant="dark" icon={<Check size={18} aria-hidden />} onClick={approvePact}>
+                  {!safeguardsDone(safeguards.c1) && <p className="mt-2 text-sm font-semibold text-amber-700">{t('coord.sg.needed')}</p>}
+                  <Button
+                    className="mt-3"
+                    variant="dark"
+                    disabled={!safeguardsDone(safeguards.c1)}
+                    icon={<Check size={18} aria-hidden />}
+                    onClick={approvePact}
+                  >
                     {t('coord.approve')}
                   </Button>
                 </div>
+              )}
+
+              <SafeguardPanel caseId={sel} />
+              <ReferralPanel caseId={sel} />
+              {sel === 'c1' && (
+                <section aria-labelledby="coord-chat" className="mt-5 overflow-hidden rounded-card border border-line">
+                  <h3 id="coord-chat" className="flex items-center gap-2 border-b border-soft px-4 py-2 text-sm font-semibold">
+                    {t('coordChat.deskTitle', { name: current.tenant })}
+                  </h3>
+                  <div className="flex h-80 flex-col">
+                    <CoordChat side="coord" />
+                  </div>
+                </section>
               )}
 
               <div className="mt-4">
@@ -303,11 +413,7 @@ export function Coordinator() {
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-base">
-                  <span className="text-muted">{t('coord.timeSpent')}: </span>
-                  <span className="font-semibold tabular-nums">{t('coord.timeValue', { h: Math.floor(spent / 60), m: spent % 60 })}</span>
-                </p>
+              <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
                 <Button variant="secondary" size="sm" icon={<Timer size={16} aria-hidden />} onClick={() => addCaseMinutes(sel, 15)}>
                   {t('coord.addTime')}
                 </Button>
@@ -322,10 +428,73 @@ export function Coordinator() {
                 {t('coord.markMissed')}
               </Button>
             </section>
+
+            <section aria-label={t('coord.alerts')} className="rounded-card border border-line bg-white p-5">
+              <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+                {t('coord.alerts')} <Chip tone={alerts.length ? 'rose' : 'teal'}>{alerts.length}</Chip>
+              </h2>
+              {alerts.length === 0 ? (
+                <p className="text-base text-muted">{t('coord.noAlerts')}</p>
+              ) : (
+                <ul className="space-y-2" aria-live="polite">
+                  {alerts.map((a) => (
+                    <li
+                      key={a.id}
+                      className={`rounded-card border p-3 ${a.tone === 'rose' ? 'border-rose-200 bg-rose-50' : 'border-amber-200 bg-amber-50'}`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => a.caseId && open_(a.caseId)}
+                        disabled={!a.caseId}
+                        className="flex w-full gap-3 text-left disabled:cursor-default"
+                      >
+                        <a.icon size={20} aria-hidden className={`mt-0.5 shrink-0 ${a.tone === 'rose' ? 'text-rose-700' : 'text-amber-700'}`} />
+                        <span>
+                          <span className="block font-semibold">
+                            {a.title} {a.when && <span className="font-normal text-muted">· {a.when}</span>}
+                            {a.flag && <Due f={a.flag} />}
+                          </span>
+                          <span className="block text-base">{a.body}</span>
+                        </span>
+                      </button>
+                      {a.flagId && (
+                        <Button
+                          className="ml-8 mt-2"
+                          variant="secondary"
+                          size="sm"
+                          icon={<Check size={16} aria-hidden />}
+                          onClick={() => resolveFlag(a.flagId!)}
+                        >
+                          {t('coord.resolve')}
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
           </div>
         </div>
         <p className="text-center text-sm text-muted">{t('common.concept')}</p>
       </main>
     </div>
+  )
+}
+
+/** Response deadline: 24 h for safety items, 5 working days otherwise (lib/sla.ts). */
+function Due({ f }: { f: FlagT }) {
+  const { t } = useTranslation()
+  const h = hoursLeft(f)
+  if (h === null) return null
+  const over = h < 0
+  const label = over ? t('coord.overdue', { h: Math.abs(h) }) : h < 48 ? t('coord.dueH', { h }) : t('coord.dueD', { d: Math.ceil(h / 24) })
+  return (
+    <span
+      className={`ml-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 align-middle text-xs font-semibold ${over ? 'bg-rose-700 text-white' : h < 6 ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-200' : 'bg-white text-muted ring-1 ring-line'}`}
+      title={isSafety(f.kind) ? t('coord.slaSafety') : t('coord.slaOther')}
+    >
+      <Timer size={12} aria-hidden />
+      {label}
+    </span>
   )
 }
