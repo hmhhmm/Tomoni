@@ -15,7 +15,7 @@ npm install
 npm run dev          # http://localhost:5173
 npm run build        # type-check + production build into dist/
 npm run preview      # serve dist/ on http://localhost:4173
-npm run check:i18n   # every key exists in both English and Japanese
+npm run check:i18n   # every key and {{placeholder}} matches across all five languages
 npm run format       # Prettier
 ```
 
@@ -58,7 +58,7 @@ src/
   store.ts            Zustand store, persisted to localStorage
   data/               types, seeded data, matching score, pricing maths, journey stages
   lib/                guardrails + mock translation, formatting, hooks, paths (/saito and /aisha), sla (response deadlines)
-  i18n/               en.ts and ja.ts (ja is type-checked against en)
+  i18n/               en, ja, ms, vi, zh (each type-checked against en); langs.ts lists them
   components/
     ui/               Button, Chip, Modal, Field, Stepper, Avatar, Photo
     domain/           ListingCard, MapView, HourMeter, StepBar, ChatBubble, StayTabs, CaseSafety, CurrentStayCard, Bits
@@ -92,6 +92,6 @@ scripts/check-i18n.mjs
 - **Check-in photo and voice note**: the coordinator always sees them. Emi sees them only when Mrs Sato ticks **Also share with Emi** for that week (off by default). Aisyah never does. They are deleted after 30 days unless the coordinator ticks **Keep as evidence**.
 - **Family summary**: "This week in brief" on the family view is a template built only from check-ins, confirmed hours and plans. It never uses message content.
 - **Text size** (A / A+ / A++) is in the header for hosts and family.
-- **Japanese and English** cover every string. Messages are shown in the viewer's language with the original beneath and an "AI-assisted" label.
+- **Five page languages** (the ones IDEA.md lists): English, 日本語, Bahasa Melayu, Tiếng Việt and 简体中文, chosen from the header dropdown. Every interface string exists in all five. Chat translation and the sample listings exist in English and Japanese; Malay, Vietnamese and Chinese readers see them in English. Messages show the original beneath with an "AI-assisted" label.
 
 See [DESIGN_NOTES.md](DESIGN_NOTES.md) for the design references, the formulas behind every number, and known limits.

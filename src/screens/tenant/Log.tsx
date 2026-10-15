@@ -11,6 +11,7 @@ import { agreedHelps, startOfWeek, useStore, weekHours } from '../../store'
 import { HELP_ORDER } from '../../data/seed'
 import { HELP_ICONS } from '../../lib/helps'
 import { formatDay } from '../../lib/format'
+import { localeOf } from '../../i18n/langs'
 import { useUI } from '../../ui'
 import { RULES } from '../../tokens'
 import type { HelpId } from '../../data/types'
@@ -198,7 +199,7 @@ export function Log() {
             {days.map(({ d, entries, today }) => (
               <li key={d.toISOString()} className="flex flex-col items-center gap-1.5">
                 <span className={`text-xs ${today ? 'font-semibold text-ink' : 'text-muted'}`}>
-                  {d.toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-GB', { weekday: 'narrow' })}
+                  {d.toLocaleDateString(localeOf(lang), { weekday: 'narrow' })}
                 </span>
                 <span
                   className={`grid h-9 w-9 place-items-center rounded-full text-xs font-semibold tabular-nums ${entries.length ? 'bg-ink text-white' : today ? 'bg-white ring-2 ring-ink' : 'bg-white text-muted'}`}

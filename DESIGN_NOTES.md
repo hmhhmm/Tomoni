@@ -116,6 +116,7 @@ Explore's round search button stays red as the one exception: it is the signatur
 ## Known limits
 
 - Translation is mocked: pre-written phrases and the seeded chats translate; other text is shown as written with a clear note.
+- The Malay, Vietnamese and Simplified Chinese interface text is a machine-quality draft. Have a native speaker review it before a pilot. Sample listings, applicant intros and chat translation exist only in English and Japanese, so those three languages show them in English.
 - Guardrails are keyword matching in English and Japanese. A real product needs reviewed models and human review.
 - Other hosts' replies are canned. Everything is stored in the browser, so two people cannot yet use it on two devices.
 - Verification, e-signature, calls and the care-manager hand-off are mocks. Prices are examples until a pilot is agreed.

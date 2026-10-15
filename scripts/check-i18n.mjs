@@ -1,4 +1,5 @@
-// Verifies that every t('...') key used in src exists in both en.ts and ja.ts.
+// Verifies that every t('...') key used in src exists in English, and that every other language file
+// has exactly the same keys and the same {{placeholders}} as English.
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -12,24 +13,36 @@ const load = (f) => {
   const src = readFileSync(join(root, 'i18n', f), 'utf8')
     .replace(/import .*\n/g, '')
     .replace(/type Widen[^\n]*\n/, '')
-    .replace(/export const (en|ja)(: [^=]+)? =/, 'return ')
+    .replace(/export const [a-z]+(: [^=]+)? =/, 'return ')
   return new Function(src)()
 }
-const flat = (o, p = '') => Object.entries(o).flatMap(([k, v]) => (typeof v === 'string' ? [p + k] : flat(v, p + k + '.')))
-const en = new Set(flat(load('en.ts')))
-const ja = new Set(flat(load('ja.ts')))
+const flat = (o, p = '') => Object.entries(o).flatMap(([k, v]) => (typeof v === 'string' ? [[p + k, v]] : flat(v, p + k + '.')))
+const vars = (s) =>
+  [...s.matchAll(/{{\s*(\w+)\s*}}/g)]
+    .map((m) => m[1])
+    .sort()
+    .join(',')
+const enMap = new Map(flat(load('en.ts')))
+const en = new Set(enMap.keys())
+const OTHERS = ['ja', 'ms', 'vi', 'zh']
 
 let bad = 0
-for (const k of en)
-  if (!ja.has(k)) {
-    console.log('missing in ja:', k)
-    bad++
-  }
-for (const k of ja)
-  if (!en.has(k)) {
-    console.log('missing in en:', k)
-    bad++
-  }
+for (const lang of OTHERS) {
+  const map = new Map(flat(load(`${lang}.ts`)))
+  for (const k of en)
+    if (!map.has(k)) {
+      console.log(`missing in ${lang}:`, k)
+      bad++
+    } else if (vars(map.get(k)) !== vars(enMap.get(k))) {
+      console.log(`placeholders differ in ${lang}:`, k, `(en: ${vars(enMap.get(k)) || 'none'}, ${lang}: ${vars(map.get(k)) || 'none'})`)
+      bad++
+    }
+  for (const k of map.keys())
+    if (!en.has(k)) {
+      console.log(`extra key in ${lang}:`, k)
+      bad++
+    }
+}
 
 const used = new Set()
 const plural = (k) => en.has(k + '_one') || en.has(k + '_other')
@@ -44,5 +57,5 @@ for (const k of used) {
     bad++
   }
 }
-console.log(bad ? `${bad} problem(s)` : `i18n OK: ${en.size} keys, ${used.size} literal keys used`)
+console.log(bad ? `${bad} problem(s)` : `i18n OK: ${en.size} keys in en + ${OTHERS.join(', ')}, ${used.size} literal keys used`)
 process.exit(bad ? 1 : 0)

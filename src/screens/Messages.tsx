@@ -24,6 +24,7 @@ import { Page } from '../components/domain/Bits'
 import { PHRASES } from '../lib/guardrails'
 import { LISTINGS, APPLICANTS } from '../data/seed'
 import { MEET_SLOTS } from '../data/journey'
+import { contentLang } from '../i18n/langs'
 import { CoordChat } from '../components/domain/CaseSafety'
 import { formatDayTime } from '../lib/format'
 import { useL } from '../lib/hooks'
@@ -178,8 +179,8 @@ export function Messages() {
     endRef.current?.scrollIntoView({ block: 'end' })
   }, [thread.length, key])
 
-  // Chat reads in the language chosen for the page; the other language shows beneath.
-  const viewerLang = lang
+  // Chat reads in the page language when the prototype has it (Japanese or English); otherwise in English.
+  const viewerLang = contentLang(lang)
   const chips = QUICK_REPLIES[side]
 
   const send = () => {
