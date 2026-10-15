@@ -23,7 +23,7 @@ export function TabBar() {
                 {!!it.badge && (
                   <span
                     className="absolute -right-2 -top-1.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand-600 px-1 text-[10px] font-bold text-white"
-                    aria-label={t('nav.unread', { n: it.badge })}
+                    aria-label={t(it.badgeKey ?? 'nav.unread', { n: it.badge })}
                   >
                     {it.badge}
                   </span>

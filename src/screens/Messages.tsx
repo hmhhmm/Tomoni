@@ -203,7 +203,7 @@ export function Messages() {
           title={t('chat.emptyTitle')}
           body={t('chat.emptyBody')}
           action={
-            <LinkButton to={side === 'host' ? '/host/people' : '/aisha/explore'} variant="dark">
+            <LinkButton to={side === 'host' ? '/saito/people' : '/aisha/explore'} variant="dark">
               {side === 'host' ? t('nav.people') : t('nav.explore')}
             </LinkButton>
           }
@@ -346,14 +346,10 @@ export function Messages() {
                   >
                     {t('people.reject')}
                   </Button>
-                  {meetBooked ? (
+                  {meetBooked && (
                     <LinkButton to={p('/stay')} size="sm" variant="soft" icon={<CalendarCheck size={16} aria-hidden />}>
                       {t('chat.viewStay')}
                     </LinkButton>
-                  ) : (
-                    <Button size="md" variant="primary" className="shadow-lift" icon={<CalendarPlus size={18} aria-hidden />} onClick={planMeet}>
-                      {t('chat.schedule')}
-                    </Button>
                   )}
                 </>
               )}

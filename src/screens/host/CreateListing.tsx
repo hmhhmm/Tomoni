@@ -20,7 +20,7 @@ export function CreateListing() {
   const step = Math.min(2, Math.max(0, +(s ?? '1') - 1))
   const { draft, patchDraft, helps } = useStore()
   const total = 4
-  const go = (n: number) => nav(`/host/create/${n + 1}`)
+  const go = (n: number) => nav(`/saito/create/${n + 1}`)
   const c = costs(draft.standardRent, draft.homeshareRent, helps)
   const range = suggestedRange(draft.standardRent)
   const inRange = draft.homeshareRent >= range.min && draft.homeshareRent <= range.max
@@ -190,7 +190,7 @@ export function CreateListing() {
       onBack={() => go(1)}
       onNext={() => {
         patchDraft({ published: true })
-        nav('/host/help')
+        nav('/saito/help')
       }}
       nextLabel={t('create.toHelp')}
     >

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, BedDouble, CalendarCheck, DoorOpen, FileSignature, HandHeart, Pencil, Undo2, Users, MapPin } from 'lucide-react'
+import { ArrowRight, BedDouble, CalendarCheck, Check, DoorOpen, FileSignature, HandHeart, MapPin, Pencil, Send, Undo2, Users } from 'lucide-react'
 import { Page, EmptyState, Notice, FictionalTag, VerifiedBadge } from '../components/domain/Bits'
 import { Avatar } from '../components/ui/Avatar'
 import { Button, LinkButton } from '../components/ui/Button'
@@ -27,6 +27,8 @@ export function Stay() {
   const [weeks, setWeeks] = useState(match.trialWeeks)
   // Picking a time opens a confirmation; the host can still change the choice there, or edit it later.
   const [draftSlot, setDraftSlot] = useState<string | null>(null)
+  // First booking: the chosen time is held here until the host taps "Confirm and send".
+  const [picked, setPicked] = useState<string | null>(null)
   const side = persona === 'tenant' ? 'tenant' : 'host'
   const a = applicants.find((x) => x.id === match.applicantId)
   const c = costs(draft.standardRent, draft.homeshareRent, agreedHelps({ pactHelps, declined }))
@@ -43,7 +45,7 @@ export function Stay() {
           title={t('stay.emptyTitle')}
           body={side === 'host' ? t('stay.emptyHost') : t('stay.emptyTenant')}
           action={
-            <LinkButton to={side === 'host' ? '/host/people' : '/aisha/explore'} variant="dark">
+            <LinkButton to={side === 'host' ? '/saito/people' : '/aisha/explore'} variant="dark">
               {side === 'host' ? t('nav.people') : t('nav.explore')}
             </LinkButton>
           }
@@ -77,25 +79,44 @@ export function Stay() {
                 <>
                   <h2 className="text-xl font-semibold">{t('stay.pick')}</h2>
                   <p className="mt-1 text-base text-muted">{t('stay.tip')}</p>
-                  <ul className="mt-5 space-y-3">
+                  <ul className="mt-5 space-y-3" role="radiogroup" aria-label={t('stay.pick')}>
                     {MEET_SLOTS.map((s) => (
                       <li key={s.id}>
                         <button
                           type="button"
-                          onClick={() => (side === 'host' ? setDraftSlot(s.id) : undefined)}
+                          role="radio"
+                          aria-checked={picked === s.id}
+                          onClick={() => (side === 'host' ? setPicked(s.id) : undefined)}
                           disabled={side !== 'host'}
-                          className="flex w-full items-center gap-4 rounded-card border border-line p-4 text-left transition hover:border-ink"
+                          className={`flex w-full items-center gap-4 rounded-card border-2 p-4 text-left transition ${picked === s.id ? 'border-brand-600 bg-brand-50' : 'border-line hover:border-ink'}`}
                         >
-                          <CalendarCheck size={22} aria-hidden />
+                          <CalendarCheck size={22} aria-hidden className={picked === s.id ? 'text-brand-700' : ''} />
                           <span className="flex-1">
                             <span className="block text-base font-semibold">{fmt(s.date())}</span>
                             <span className="block text-sm text-muted">{t(`stay.place.${s.place}`)}</span>
                           </span>
-                          <ArrowRight size={18} aria-hidden />
+                          {picked === s.id && <Check size={20} aria-hidden className="text-brand-700" />}
                         </button>
                       </li>
                     ))}
                   </ul>
+                  {side === 'host' && (
+                    <div className="mt-5 flex flex-wrap items-center gap-3">
+                      <Button
+                        variant="primary"
+                        size="lg"
+                        disabled={!picked}
+                        icon={<Send size={18} aria-hidden />}
+                        onClick={() => {
+                          if (picked) bookMeet(picked)
+                          setPicked(null)
+                        }}
+                      >
+                        {t('stay.confirmMeet')}
+                      </Button>
+                      <p className="text-sm text-muted">{picked ? t('stay.confirmMeetNote', { name: a.name }) : t('stay.pickFirst')}</p>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>
@@ -208,7 +229,7 @@ export function Stay() {
               </h2>
               <p className="mt-1 text-base text-muted">{t('stay.livingBody')}</p>
               <div className="mt-5 flex flex-wrap gap-3">
-                <LinkButton to={side === 'host' ? '/host/checkin' : '/aisha/log'} variant="dark">
+                <LinkButton to={side === 'host' ? '/saito/checkin' : '/aisha/log'} variant="dark">
                   {side === 'host' ? t('nav.checkin') : t('nav.log')}
                 </LinkButton>
                 <LinkButton to={p('/agreement')} variant="secondary">
@@ -224,7 +245,7 @@ export function Stay() {
                 <strong>{t('stay.endedTitle')}</strong> {t('stay.endedBody')}
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <LinkButton to={side === 'host' ? '/host/people' : '/aisha/explore'} variant="dark">
+                <LinkButton to={side === 'host' ? '/saito/people' : '/aisha/explore'} variant="dark">
                   {t('stay.findOther')}
                 </LinkButton>
                 <Button variant="secondary" icon={<Undo2 size={16} aria-hidden />} onClick={resumeTrial}>

@@ -38,8 +38,8 @@ export function HelpPicker() {
       total={4}
       title={t('help.title')}
       lede={t('help.lede')}
-      onBack={() => nav('/host/create/3')}
-      onNext={() => nav('/host/people')}
+      onBack={() => nav('/saito/create/3')}
+      onNext={() => nav('/saito/people')}
       nextLabel={t('help.save')}
       nextDisabled={total === 0}
     >

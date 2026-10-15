@@ -13,7 +13,7 @@ export function StayTabs() {
   const tabs = [
     { to: p('/stay'), icon: BedDouble, label: t('stayTabs.overview') },
     { to: p('/agreement'), icon: FileSignature, label: t('nav.agreement') },
-    ...(persona === 'host' ? [{ to: '/host/checkin', icon: HeartPulse, label: t('nav.checkin') }] : []),
+    ...(persona === 'host' ? [{ to: '/saito/checkin', icon: HeartPulse, label: t('nav.checkin') }] : []),
   ]
   return (
     <>

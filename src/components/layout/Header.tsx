@@ -24,6 +24,7 @@ import { useStore } from '../../store'
 import { useUI } from '../../ui'
 import { Wordmark } from './Wordmark'
 import { LangSelect } from './LangSelect'
+import { useLivesThere } from '../domain/CurrentStayCard'
 import { Avatar } from '../ui/Avatar'
 import { RULES } from '../../tokens'
 import { pathFor } from '../../lib/paths'
@@ -34,12 +35,14 @@ export interface NavItem {
   key: string
   badge?: number
   bottom?: boolean
+  /** Screen-reader label for the badge (defaults to "N unread"). */
+  badgeKey?: string
   /** Other routes that count as this item (Stay covers the agreement and the check-in). */
   also?: string[]
 }
 
 /** Stay, Agreement and Check-in are one area in the nav, with tabs inside it. */
-export const STAY_ROUTES = ['/stay', '/agreement', '/host/checkin']
+export const STAY_ROUTES = ['/saito/stay', '/saito/agreement', '/saito/checkin']
 const AISHA_STAY = ['/aisha/stay', '/aisha/agreement']
 
 export function useNav(): NavItem[] {
@@ -50,22 +53,24 @@ export function useNav(): NavItem[] {
   const active = applicants.filter((a) => a.status !== 'declined')
   const hostUnread = active.reduce((n, a) => n + (unread.host[a.id] ?? 0), 0)
   const coordUnread = useStore((s) => s.coordUnread.tenant)
+  const toConfirm = useStore((s) => s.tasks.filter((x) => x.status === 'pending').length)
+  const livesThere = useLivesThere()
   const tenantUnread = Object.values(unread.tenant).reduce((a, b) => a + b, 0) + coordUnread
   if (persona === 'host') {
     return [
-      { to: '/host', icon: Home, key: 'nav.today', bottom: true },
-      { to: '/host/people', icon: Users, key: 'nav.people', badge: active.length, bottom: true },
-      { to: '/messages', icon: MessageCircle, key: 'nav.messages', badge: hostUnread, bottom: true },
-      { to: '/stay', icon: BedDouble, key: 'nav.stay', bottom: true, also: STAY_ROUTES },
+      { to: '/saito', icon: Home, key: 'nav.today', badge: toConfirm, badgeKey: 'nav.toConfirm', bottom: true },
+      { to: '/saito/people', icon: Users, key: 'nav.people', badge: active.length, bottom: true },
+      { to: '/saito/messages', icon: MessageCircle, key: 'nav.messages', badge: hostUnread, bottom: true },
+      { to: '/saito/stay', icon: BedDouble, key: 'nav.stay', bottom: true, also: STAY_ROUTES },
     ]
   }
   if (persona === 'tenant') {
-    return [
-      { to: '/aisha/explore', icon: Search, key: 'nav.explore', bottom: true, also: ['/aisha/rooms'] },
-      { to: '/aisha/messages', icon: MessageCircle, key: 'nav.messages', badge: tenantUnread, bottom: true },
-      { to: '/aisha/stay', icon: BedDouble, key: 'nav.stay', bottom: true, also: AISHA_STAY },
-      { to: '/aisha/log', icon: ListChecks, key: 'nav.log', bottom: true },
-    ]
+    const explore: NavItem = { to: '/aisha/explore', icon: Search, key: 'nav.explore', bottom: true, also: ['/aisha/rooms'] }
+    const messages: NavItem = { to: '/aisha/messages', icon: MessageCircle, key: 'nav.messages', badge: tenantUnread, bottom: true }
+    const stay: NavItem = { to: '/aisha/stay', icon: BedDouble, key: 'nav.stay', bottom: true, also: AISHA_STAY }
+    const log: NavItem = { to: '/aisha/log', icon: ListChecks, key: 'nav.log', bottom: true }
+    // Once she has a room, her stay and her task log matter more than browsing.
+    return livesThere ? [stay, log, messages, explore] : [explore, messages, stay, log]
   }
   if (persona === 'family') return [{ to: '/family', icon: LayoutDashboard, key: 'nav.family', bottom: true }]
   return []
@@ -76,7 +81,7 @@ export function useIsActive() {
   const { pathname } = useLocation()
   return (it: NavItem) => {
     const routes = [it.to, ...(it.also ?? [])]
-    return routes.some((r) => (r === '/host' ? pathname === '/host' : pathname === r || pathname.startsWith(`${r}/`)))
+    return routes.some((r) => (r === '/saito' ? pathname === '/saito' : pathname === r || pathname.startsWith(`${r}/`)))
   }
 }
 
@@ -162,8 +167,8 @@ export function Header() {
   const hue = { host: 262, tenant: 172, family: 28 }
 
   const personas = [
-    { id: 'host' as const, label: t('menu.asHost', { name: who.host }), icon: <KeyRound size={20} aria-hidden />, to: '/host' },
-    { id: 'tenant' as const, label: t('menu.asTenant', { name: who.tenant }), icon: <Search size={20} aria-hidden />, to: '/aisha/explore' },
+    { id: 'host' as const, label: t('menu.asHost', { name: who.host }), icon: <KeyRound size={20} aria-hidden />, to: '/saito' },
+    { id: 'tenant' as const, label: t('menu.asTenant', { name: who.tenant }), icon: <Search size={20} aria-hidden />, to: '/aisha' },
     { id: 'family' as const, label: t('menu.asFamily', { name: who.family }), icon: <HandHeart size={20} aria-hidden />, to: '/family' },
   ]
 
@@ -188,7 +193,7 @@ export function Header() {
                     {!!it.badge && (
                       <span
                         className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-600 px-1.5 text-xs font-bold text-white"
-                        aria-label={t('nav.unread', { n: it.badge })}
+                        aria-label={t(it.badgeKey ?? 'nav.unread', { n: it.badge })}
                       >
                         {it.badge}
                       </span>

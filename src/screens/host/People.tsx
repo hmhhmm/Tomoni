@@ -140,12 +140,12 @@ function Profile({ a, f, onClose }: { a: Applicant; f: Fit; onClose: () => void 
 
   const message = () => {
     if (a.status === 'new') setApplicantStatus(a.id, 'chatting')
-    nav(`/messages/${a.id}`)
+    nav(`/saito/messages/${a.id}`)
   }
   const meet = () => {
     if (a.status === 'new') setApplicantStatus(a.id, 'chatting')
     startMeeting(a.id)
-    nav('/stay')
+    nav('/saito/stay')
   }
 
   return (

@@ -39,7 +39,7 @@ export function CheckIn() {
           title={t('checkin.notYetTitle')}
           body={t('checkin.notYetBody')}
           action={
-            <LinkButton to="/stay" variant="dark">
+            <LinkButton to="/saito/stay" variant="dark">
               {t('nav.stay')}
             </LinkButton>
           }

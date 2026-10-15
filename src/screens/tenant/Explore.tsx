@@ -25,6 +25,7 @@ import { Button } from '../../components/ui/Button'
 import { Pill } from '../../components/ui/Chip'
 import { Select } from '../../components/ui/Field'
 import { companionOnly as isCompanionOnly, useStore } from '../../store'
+import { CurrentStayCard, useHasStay } from '../../components/domain/CurrentStayCard'
 import { useListings } from '../../lib/listings'
 import { useL, yen, monthLabel } from '../../lib/hooks'
 import { AREAS } from '../../data/seed'
@@ -102,6 +103,7 @@ export function Explore() {
   const lang = useStore((s) => s.lang)
   const tenant = useStore((s) => s.tenant)
   const saved = useStore((s) => s.saved)
+  const hasStay = useHasStay()
   const all = useListings()
   const f = useFilters()
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -149,6 +151,11 @@ export function Explore() {
 
   return (
     <>
+      {hasStay && (
+        <Page className="pt-6">
+          <CurrentStayCard />
+        </Page>
+      )}
       {/* Search pill + category row */}
       <div className="z-20 border-b border-soft bg-white lg:sticky lg:top-20">
         <Page>

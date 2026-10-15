@@ -27,22 +27,22 @@ Open the menu (top right) to switch between them. Each is a real session over th
 
 | View | Start at | What you can do |
 |------|----------|-----------------|
-| Host (Mrs Sato) | `/host` | Edit the listing, set rent and help hours (10 h cap), review applicants ranked by match score (open a profile to message, plan a meet-up or reject), start a trial, sign, confirm help, answer the weekly check-in |
-| Housemate (Aisyah) | `/aisha/explore` | Search and filter rooms, save (the **Saved** button on Explore shows saved rooms), apply, message hosts, confirm meet-ups, sign, log help in the **Task log** (with the 28 h student tracker), monthly pulse, report a concern |
+| Host (Mrs Sato) | `/saito` | Edit the listing, set rent and help hours (10 h cap), review applicants ranked by match score (open a profile to message, plan a meet-up or reject), start a trial, sign, confirm help, answer the weekly check-in |
+| Housemate (Aisyah) | `/aisha` (her stay once she has one, otherwise Explore) | Search and filter rooms, save (the **Saved** button on Explore shows saved rooms), apply, message hosts, confirm meet-ups, sign, log help in the **Task log** (with the 28 h student tracker), monthly pulse, report a concern |
 | Family (Emi) | `/family` | Opt in, then see the weekly check-in, confirmed hours and meet-ups. Never messages |
 
-All of Aisyah's pages live under `/aisha/...` (old housemate URLs redirect there). The coordinator desk is at `/coordinator` and the Safety Centre at `/safety`.
+Mrs Sato's pages live under `/saito/...` and Aisyah's under `/aisha/...`; old `/host/...` and housemate URLs redirect there. The coordinator desk is at `/coordinator` and the Safety Centre at `/safety`.
 
 ### A natural walk-through
 
 1. Host: **Applicants →** open Aisyah's profile **→ Message** (the guardrails react if you write about bathing, money or secrets).
    Language is a dropdown in the header. Chat leads in the chosen language, with the other language beneath.
-2. **Plan a meet-up**: pick a time, check or change it in the confirmation pop-up, and send. A notice appears in both people's chat and Aisyah taps **Confirm this time**. Then **Start the trial stay**, **Continue to the agreement**, sign.
+2. **Plan a meet-up** (the card above the message box): pick a time, then **Confirm and send** below the list. To change it later, **Edit meet-up** opens a pop-up. A notice appears in both people's chat and Aisyah taps **Confirm this time**. Then **Start the trial stay**, **Continue to the agreement**, sign.
    Stay, Agreement and Check-in are one **Stay** area in the nav, with tabs at the top.
 3. Menu → **Finding a room as Aisyah**. Mark any task **I can't do this**, then sign.
    Any change to the tasks clears both signatures, so the host signs the final version again.
 4. Open the **Coordinator desk**, tick the three **Safeguarding checks** on the Sato case, then **Approve agreement**. You are now living together.
-5. Aisyah logs help in **Task log**. Menu → host → **Today → Confirm**.
+5. Aisyah logs help in **Task log**. Menu → host: **Today** opens with a confirm card at the top (and a count on the Today tab). Once Aisyah has a room, Explore starts with a full-width card for her stay, and her nav puts Stay and Task log first.
 6. Host **Stay → Check-in tab → All good** (a photo is optional). Menu → **Family view** to see it.
 7. **Coordinator desk**: click any case to see why it has its status and what to do next. Resolve flags, move a case up the escalation steps and log coordinator time.
 

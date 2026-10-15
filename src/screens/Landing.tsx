@@ -65,7 +65,7 @@ export function Landing() {
               {t('landing.sub')}
             </motion.p>
             <motion.div {...rise(0.18)} className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Button size="lg" onClick={() => go('host', '/host')} icon={<HandHeart size={20} aria-hidden />}>
+              <Button size="lg" onClick={() => go('host', '/saito')} icon={<HandHeart size={20} aria-hidden />}>
                 {t('landing.host')}
               </Button>
               <Button size="lg" variant="secondary" onClick={() => go('tenant', '/aisha/explore')}>
@@ -141,7 +141,7 @@ export function Landing() {
               <div className="mt-auto pt-6">
                 <Button
                   variant="secondary"
-                  onClick={() => go('host', '/host')}
+                  onClick={() => go('host', '/saito')}
                   icon={<ArrowRight size={18} aria-hidden />}
                   className="flex-row-reverse"
                 >

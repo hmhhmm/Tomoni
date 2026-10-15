@@ -18,7 +18,7 @@ export function AppShell() {
   const { pathname } = useLocation()
   const { persona, textLevel } = useStore()
   const toast = useUI((s) => s.toast)
-  const focused = /^\/(host\/create|host\/help|aisha\/account\/verify)/.test(pathname)
+  const focused = /^\/(saito\/create|saito\/help|aisha\/account\/verify)/.test(pathname)
 
   useEffect(() => {
     window.scrollTo(0, 0)
