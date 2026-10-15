@@ -35,6 +35,8 @@ Mrs Sato's pages live under `/saito/...` and Aisyah's under `/aisha/...`; old `/
 
 ### A natural walk-through
 
+For a presenter's script (a 70-second video cut, a 12-minute walkthrough, and how each screen proves the idea), see [DEMO.md](DEMO.md).
+
 1. Host: **Applicants →** open Aisyah's profile **→ Message** (the guardrails react if you write about bathing, money or secrets).
    Language is a dropdown in the header. Chat leads in the chosen language, with the other language beneath.
 2. **Plan a meet-up** (the card above the message box): pick a time, then **Confirm and send** below the list. To change it later, **Edit meet-up** opens a pop-up. A notice appears in both people's chat and Aisyah taps **Confirm this time**. Once she has confirmed, **Start the trial stay**, **Continue to the agreement**, sign.
