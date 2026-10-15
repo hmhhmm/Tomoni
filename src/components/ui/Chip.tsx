@@ -50,7 +50,7 @@ export function Pill({
       aria-pressed={selected}
       onClick={onClick}
       className={`inline-flex h-11 items-center gap-2 whitespace-nowrap rounded-full border px-4 text-base font-medium transition-colors duration-150 ${
-        selected ? 'border-ink bg-ink text-white' : 'border-line bg-white text-ink hover:border-ink'
+        selected ? 'border-ink bg-ink text-white' : 'border-field bg-white text-ink hover:border-ink'
       } ${className}`}
     >
       {icon}

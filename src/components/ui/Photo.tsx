@@ -1,8 +1,9 @@
+import { SATO_HUE } from '../../tokens'
 export type Scene = 'room' | 'window' | 'kitchen' | 'garden' | 'entry'
 export const SCENES: Scene[] = ['room', 'window', 'kitchen', 'entry', 'garden']
 
 /** Illustrated room scenes standing in for photographs. Soft light, no real people. */
-export function Photo({ hue = 262, scene = 'room', className = '' }: { hue?: number; scene?: Scene; className?: string }) {
+export function Photo({ hue = SATO_HUE, scene = 'room', className = '' }: { hue?: number; scene?: Scene; className?: string }) {
   const wall = `hsl(${hue} 55% 94%)`
   const wall2 = `hsl(${hue} 50% 89%)`
   const floor = `hsl(${(hue + 35) % 360} 30% 80%)`
@@ -51,7 +52,7 @@ export function Photo({ hue = 262, scene = 'room', className = '' }: { hue?: num
       )}
       {scene === 'window' && (
         <>
-          <rect x="70" y="30" width="260" height="170" rx="16" fill={`hsl(${(hue + 90) % 360} 70% 90%)`} stroke={accent2} strokeWidth="6" />
+          <rect x="70" y="30" width="260" height="170" rx="16" fill="hsl(205 70% 90%)" stroke={accent2} strokeWidth="6" />
           <circle cx="270" cy="82" r="22" fill="#FFE29A" />
           <path d="M70 200c40-60 90-60 130-20s90 30 130-30v50z" fill="#3CD0BD" opacity=".45" />
           <path d="M200 30v170M70 115h260" stroke={accent2} strokeWidth="4" />

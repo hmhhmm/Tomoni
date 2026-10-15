@@ -160,7 +160,7 @@ function Profile({ a, f, onClose }: { a: Applicant; f: Fit; onClose: () => void 
             {t('people.undoReject')}
           </Button>
         ) : (
-          <div className="flex w-full flex-wrap items-center gap-2">
+          <div className="flex w-full flex-col-reverse gap-2 sm:flex-row sm:items-center [&>button]:max-sm:w-full">
             <Button
               variant="ghost"
               className="!text-rose-700"
@@ -172,7 +172,7 @@ function Profile({ a, f, onClose }: { a: Applicant; f: Fit; onClose: () => void 
             >
               {t('people.reject')}
             </Button>
-            <span className="flex-1" />
+            <span className="hidden flex-1 sm:block" />
             <Button variant="secondary" icon={<MessageCircle size={16} aria-hidden />} onClick={message}>
               {t('people.meet')}
             </Button>

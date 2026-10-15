@@ -231,7 +231,7 @@ export function Messages() {
         className={`${showList ? 'block' : 'hidden'} min-h-0 min-w-0 overflow-y-auto border-r border-soft lg:block`}
         aria-label={t('chat.inbox')}
       >
-        <h1 className="px-5 pb-3 pt-6 text-[1.5rem] font-semibold">{t('nav.messages')}</h1>
+        <h1 className="px-5 pb-3 pt-6 text-[1.75rem] font-semibold">{t('nav.messages')}</h1>
         {side === 'tenant' && (
           <Link
             to={p('/messages/coordinator')}
@@ -359,7 +359,7 @@ export function Messages() {
                 </LinkButton>
               )}
             </div>
-            <p className="bg-brand-50 px-4 py-2 text-sm text-brand-700 lg:px-6">
+            <p className="bg-surface px-4 py-2 text-sm text-muted lg:px-6">
               {t('chat.banner', { you: t(`lang.${viewerLang}`), them: t(`lang.${viewerLang === 'ja' ? 'en' : 'ja'}`) })}
             </p>
 
@@ -397,11 +397,11 @@ export function Messages() {
 
             <div className="border-t border-soft bg-white px-4 py-3 lg:px-6">
               {side === 'host' && !rejected && !meetBooked && (
-                <div className="mb-3 flex flex-wrap items-center gap-3 rounded-card border border-brand-200 bg-brand-50 p-3">
-                  <CalendarPlus size={22} aria-hidden className="shrink-0 text-brand-700" />
-                  <p className="min-w-0 flex-1 text-sm text-brand-700">
+                <div className="mb-3 flex items-center gap-3 rounded-card border border-line bg-white p-3 shadow-soft">
+                  <CalendarPlus size={22} aria-hidden className="shrink-0 text-brand-600" />
+                  <p className="min-w-0 flex-1 text-sm">
                     <strong className="block text-base">{t('chat.meetNudgeTitle')}</strong>
-                    {t('chat.meetNudge', { name: applicant.name })}
+                    <span className="hidden text-muted sm:inline">{t('chat.meetNudge', { name: applicant.name })}</span>
                   </p>
                   <Button size="sm" variant="primary" onClick={planMeet}>
                     {t('chat.schedule')}

@@ -10,7 +10,7 @@ import { useStore } from '../../store'
 import { AREAS } from '../../data/seed'
 import { costs, suggestedRange } from '../../data/pricing'
 import { useL, yen } from '../../lib/hooks'
-import { RULES } from '../../tokens'
+import { RULES, SATO_HUE } from '../../tokens'
 
 export function CreateListing() {
   const { t } = useTranslation()
@@ -49,7 +49,7 @@ export function CreateListing() {
                   className={`group relative overflow-hidden rounded-card text-left ring-offset-2 transition ${on ? 'ring-2 ring-ink' : 'ring-1 ring-line hover:ring-ink'}`}
                 >
                   <div className="aspect-[4/3]">
-                    <Photo hue={262} scene={sc} />
+                    <Photo hue={SATO_HUE} scene={sc} />
                   </div>
                   <span className="flex h-11 items-center justify-between px-3 text-base font-medium">
                     {t(`create.scene.${sc}`)}

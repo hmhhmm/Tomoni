@@ -74,7 +74,7 @@ export function Safety() {
               </Button>
             </div>
           ) : (
-            <Button className="mt-4" variant="dark" icon={<PhoneCall size={18} aria-hidden />} onClick={() => setCalling(true)}>
+            <Button className="mt-4" variant="teal" icon={<PhoneCall size={18} aria-hidden />} onClick={() => setCalling(true)}>
               {t('safety.call')}
             </Button>
           )}

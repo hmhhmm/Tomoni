@@ -14,6 +14,8 @@ export const colors = {
   ink: '#222222',
   muted: '#6A6A6A',
   line: '#DDDDDD',
+  /** Outline of form controls: 3.45:1 on white (WCAG 1.4.11 needs 3:1). `line` stays for card hairlines. */
+  field: '#8A8A8A',
   soft: '#EBEBEB',
   teal: {
     50: '#EAF8F5',
@@ -44,6 +46,9 @@ export const fonts = {
   heading: ['Poppins', '"Noto Sans JP"', 'system-ui', 'sans-serif'],
   body: ['"DM Sans"', '"Noto Sans JP"', 'system-ui', 'sans-serif'],
 } as const
+
+/** Illustration hue for Mrs Sato's home and avatar: warm and neutral, so it never competes with the brand red. */
+export const SATO_HUE = 32
 
 /** Rules of the product, shared by UI and logic. */
 export const RULES = {

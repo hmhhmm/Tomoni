@@ -13,6 +13,7 @@ import { useStore, weekHours } from '../../store'
 import { MEET_SLOTS } from '../../data/journey'
 import { formatDayTime } from '../../lib/format'
 import { useUI } from '../../ui'
+import { SATO_HUE } from '../../tokens'
 
 export function FamilyInvite() {
   const { t } = useTranslation()
@@ -23,7 +24,7 @@ export function FamilyInvite() {
       <h1 className="text-[1.75rem] font-semibold">{t('invite.title')}</h1>
       <p className="mt-1 text-base text-muted">{t('invite.lede', { host: t('names.sato') })}</p>
       <div className="mt-6 flex items-center gap-3 rounded-card border border-line p-4">
-        <Avatar hue={262} size={56} label={t('names.sato')} />
+        <Avatar hue={SATO_HUE} size={56} label={t('names.sato')} />
         <div>
           <p className="text-lg font-semibold">{t('names.sato')}</p>
           <FictionalTag />
@@ -128,7 +129,7 @@ export function FamilyDashboard() {
   return (
     <Page className="py-8">
       <div className="flex flex-wrap items-center gap-3">
-        <Avatar hue={262} size={56} label={t('names.sato')} />
+        <Avatar hue={SATO_HUE} size={56} label={t('names.sato')} />
         <div>
           <h1 className="text-[1.75rem] font-semibold leading-tight">{t('family.title', { name: t('names.sato') })}</h1>
           <div className="mt-1 flex items-center gap-2">

@@ -13,6 +13,7 @@ import type {
   TaskEntry,
   TenantProfile,
 } from './types'
+import { SATO_HUE } from '../tokens'
 
 export const HELP_ORDER: HelpId[] = ['groceries', 'garden', 'cooking', 'company', 'walks', 'parcels']
 export const HELP_DEFAULT: Record<HelpId, { h: number; slot: Slot }> = {
@@ -52,7 +53,7 @@ export const LISTINGS: Listing[] = [
     languages: ['ja'],
     gender: 'any',
     pets: false,
-    hue: 262,
+    hue: SATO_HUE,
     sizeJo: 6,
     bathroom: 'shared',
     furnished: true,

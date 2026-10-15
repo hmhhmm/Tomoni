@@ -16,39 +16,17 @@ import { RULES } from '../../tokens'
 import type { HelpId } from '../../data/types'
 import { PausedNotice } from '../../components/domain/CaseSafety'
 
-/** A colour per task so the log reads at a glance (fills only; text stays at AA contrast). */
-const TINT: Record<HelpId, { tile: string; icon: string; pill: string }> = {
-  groceries: {
-    tile: 'hover:border-amber-200 hover:bg-amber-50',
-    icon: 'bg-amber-50 text-amber-700',
-    pill: 'bg-amber-50 text-amber-700 ring-amber-200 hover:bg-amber-200/60',
-  },
-  garden: {
-    tile: 'hover:border-teal-100 hover:bg-teal-50',
-    icon: 'bg-teal-50 text-teal-700',
-    pill: 'bg-teal-50 text-teal-700 ring-teal-100 hover:bg-teal-100',
-  },
-  cooking: {
-    tile: 'hover:border-brand-100 hover:bg-brand-50',
-    icon: 'bg-brand-50 text-brand-700',
-    pill: 'bg-brand-50 text-brand-700 ring-brand-100 hover:bg-brand-100',
-  },
-  company: {
-    tile: 'hover:border-brand-100 hover:bg-brand-50',
-    icon: 'bg-brand-100 text-brand-700',
-    pill: 'bg-brand-50 text-brand-700 ring-brand-100 hover:bg-brand-100',
-  },
-  walks: {
-    tile: 'hover:border-teal-100 hover:bg-teal-50',
-    icon: 'bg-teal-100 text-teal-700',
-    pill: 'bg-teal-50 text-teal-700 ring-teal-100 hover:bg-teal-100',
-  },
-  parcels: {
-    tile: 'hover:border-amber-200 hover:bg-amber-50',
-    icon: 'bg-amber-50 text-amber-700',
-    pill: 'bg-amber-50 text-amber-700 ring-amber-200 hover:bg-amber-200/60',
-  },
-}
+/** Task tiles stay neutral: red and teal mean bad and good elsewhere, so they are not used as categories. */
+const TINT: Record<HelpId, { tile: string; icon: string; pill: string }> = Object.fromEntries(
+  (['groceries', 'garden', 'cooking', 'company', 'walks', 'parcels'] as HelpId[]).map((h) => [
+    h,
+    {
+      tile: 'hover:border-ink',
+      icon: 'bg-surface text-ink ring-1 ring-line',
+      pill: 'bg-white text-ink ring-field hover:bg-surface',
+    },
+  ]),
+) as Record<HelpId, { tile: string; icon: string; pill: string }>
 
 export function Log() {
   const { t } = useTranslation()
@@ -200,7 +178,7 @@ export function Log() {
         </section>
 
         {/* 2. This week at a glance */}
-        <section className="rounded-sheet bg-gradient-to-br from-brand-50 to-teal-50 p-6">
+        <section className="rounded-sheet border border-line bg-surface p-6">
           <h2 className="text-lg font-semibold">{t('log.thisWeek')}</h2>
           <div className="mt-4 flex items-center gap-5">
             <HourMeter variant="ring" value={all} size={120} label={t('meter.week')} />
@@ -209,7 +187,7 @@ export function Log() {
                 {t('log.confirmedChip', { n: done })}
               </Chip>
               {pendingH > 0 && (
-                <Chip tone="brand" icon={<Clock size={14} aria-hidden />}>
+                <Chip tone="amber" icon={<Clock size={14} aria-hidden />}>
                   {t('log.waitingChip', { n: pendingH })}
                 </Chip>
               )}
@@ -223,7 +201,7 @@ export function Log() {
                   {d.toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-GB', { weekday: 'narrow' })}
                 </span>
                 <span
-                  className={`grid h-9 w-9 place-items-center rounded-full text-xs font-semibold tabular-nums ${entries.length ? 'bg-brand-600 text-white' : today ? 'bg-white ring-2 ring-brand-600' : 'bg-white/70 text-muted'}`}
+                  className={`grid h-9 w-9 place-items-center rounded-full text-xs font-semibold tabular-nums ${entries.length ? 'bg-ink text-white' : today ? 'bg-white ring-2 ring-ink' : 'bg-white text-muted'}`}
                   title={entries.map((x) => `${t(`help.${x.help}.title`)} ${x.hours} h`).join(', ')}
                 >
                   {entries.length ? entries.reduce((a, x) => a + x.hours, 0) : d.getDate()}
@@ -259,7 +237,7 @@ export function Log() {
                       {t('log.statusDone')}
                     </Chip>
                   ) : (
-                    <Chip tone="brand" icon={<Clock size={14} aria-hidden />}>
+                    <Chip tone="amber" icon={<Clock size={14} aria-hidden />}>
                       {t('log.statusWait', { name: t('names.sato') })}
                     </Chip>
                   )}

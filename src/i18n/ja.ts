@@ -845,6 +845,7 @@ export const ja: Widen<typeof en> = {
     reportSentBody: 'コーディネーターが報告を受け取りました。連絡します。',
   },
   coord: {
+    grp: { safety: '見守りの確認と連絡先', escalation: '対応段階・時間・メモ' },
     sg: {
       title: '見守りの確認事項',
       metAlone: 'ホストと一対一で一度は会った',

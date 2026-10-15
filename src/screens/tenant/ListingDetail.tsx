@@ -386,7 +386,7 @@ export function ListingDetail() {
         <Textarea id="intro" rows={5} value={intro} onChange={(e) => setIntro(e.target.value)} />
         <p className="mt-1.5 text-sm text-muted">{t('detail.introHint')}</p>
         <label className="mt-5 flex cursor-pointer items-start gap-3 text-base">
-          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-1 h-5 w-5 accent-brand-600" />
+          <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-1 h-5 w-5 accent-ink" />
           <span>{t('detail.agree', { cap: RULES.weeklyHourCap })}</span>
         </label>
       </Modal>

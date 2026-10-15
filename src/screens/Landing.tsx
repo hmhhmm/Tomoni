@@ -8,7 +8,7 @@ import { ListingCard } from '../components/domain/ListingCard'
 import { Button, LinkButton } from '../components/ui/Button'
 import { useStore } from '../store'
 import { useListings } from '../lib/listings'
-import { RULES } from '../tokens'
+import { RULES, SATO_HUE } from '../tokens'
 import type { Persona } from '../data/types'
 
 const ease = [0.22, 1, 0.36, 1] as const
@@ -97,7 +97,7 @@ export function Landing() {
           >
             <div className="grid grid-cols-[1.6fr_1fr] gap-3 sm:gap-4" aria-hidden>
               <div className="row-span-2 aspect-[4/5] overflow-hidden rounded-sheet">
-                <Photo hue={262} scene="room" />
+                <Photo hue={SATO_HUE} scene="room" />
               </div>
               <div className="overflow-hidden rounded-sheet">
                 <Photo hue={172} scene="garden" />
@@ -130,7 +130,7 @@ export function Landing() {
           <div className="mt-8 grid gap-10 md:grid-cols-2 md:gap-8 lg:gap-14">
             <article className="flex min-w-0 flex-col">
               <div className="aspect-[16/9] overflow-hidden rounded-sheet" aria-hidden>
-                <Photo hue={262} scene="window" />
+                <Photo hue={SATO_HUE} scene="window" />
               </div>
               <h3 className="mt-5 text-balance text-xl font-semibold leading-snug">{t('landing.whoHostTitle')}</h3>
               <p className="mt-2 max-w-prose text-base text-ink/80">{t('landing.whoHostBody')}</p>
@@ -238,7 +238,7 @@ export function Landing() {
             </h2>
             <p className="mt-2 max-w-md text-lg text-ink/80">{t('landing.safeSub')}</p>
             <div className="mt-6">
-              <Button variant="dark" size="lg" onClick={() => nav('/safety')} icon={<ShieldCheck size={20} aria-hidden />}>
+              <Button variant="teal" size="lg" onClick={() => nav('/safety')} icon={<ShieldCheck size={20} aria-hidden />}>
                 {t('landing.safetyBtn')}
               </Button>
             </div>

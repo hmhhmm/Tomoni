@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { RULES } from '../../tokens'
+import { RULES, colors } from '../../tokens'
 
 /**
  * Weekly hour meter. `bar` shows one segment per hour; `ring` is compact.
@@ -44,13 +44,13 @@ export function HourMeter({
         style={{ width: size, height: size }}
       >
         <svg width={size} height={size} className="-rotate-90">
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#EBEBEB" strokeWidth="10" />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={colors.soft} strokeWidth="10" />
           <motion.circle
             cx={size / 2}
             cy={size / 2}
             r={r}
             fill="none"
-            stroke={full ? '#0B7A6B' : '#E31C5F'}
+            stroke={full ? colors.amber[700] : colors.teal[500]}
             strokeWidth="10"
             strokeLinecap="round"
             strokeDasharray={c}
@@ -71,7 +71,7 @@ export function HourMeter({
     <div className={shake ? 'animate-shake' : ''}>
       <div className="mb-2 flex items-baseline justify-between gap-3">
         <span className="text-sm font-semibold">{aria}</span>
-        <span className={`text-base font-semibold tabular-nums ${full ? 'text-teal-700' : 'text-ink'}`}>{text}</span>
+        <span className={`text-base font-semibold tabular-nums ${full ? 'text-amber-700' : 'text-ink'}`}>{text}</span>
       </div>
       <div
         role="meter"
@@ -87,7 +87,7 @@ export function HourMeter({
             key={i}
             className="h-full flex-1 rounded-full"
             initial={false}
-            animate={{ backgroundColor: i < value ? (full ? '#14A592' : '#E31C5F') : '#EBEBEB' }}
+            animate={{ backgroundColor: i < value ? (full ? colors.amber[700] : colors.teal[500]) : colors.soft }}
             transition={{ duration: 0.2, delay: i < value ? i * 0.015 : 0 }}
           />
         ))}

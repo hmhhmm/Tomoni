@@ -14,6 +14,7 @@ import { AREAS } from '../../data/seed'
 import { HELP_ICONS } from '../../lib/helps'
 import { formatDay } from '../../lib/format'
 import { useL } from '../../lib/hooks'
+import { SATO_HUE } from '../../tokens'
 
 export function HostToday() {
   const { t } = useTranslation()
@@ -51,7 +52,7 @@ export function HostToday() {
   return (
     <Page className="py-8">
       <div className="mb-8 flex items-center gap-3">
-        <Avatar hue={262} size={56} label={t('names.sato')} />
+        <Avatar hue={SATO_HUE} size={56} label={t('names.sato')} />
         <div>
           <h1 className="text-[1.75rem] font-semibold leading-tight">{t(greet, { name: t('names.sato') })}</h1>
           <FictionalTag />
@@ -60,22 +61,31 @@ export function HostToday() {
 
       {/* Logged help waiting for her OK comes first: it is the one thing only she can do. */}
       {pending.length > 0 && (
-        <section aria-labelledby="confirm-title" className="mb-10 rounded-sheet border-2 border-brand-200 bg-brand-50 p-5 sm:p-6">
+        <section aria-labelledby="confirm-title" className="mb-10 rounded-sheet border border-line bg-white p-5 shadow-lift sm:p-6">
           <h2 id="confirm-title" className="flex items-center gap-2 text-xl font-semibold">
-            <ClipboardCheck size={24} aria-hidden className="text-brand-700" />
+            <ClipboardCheck size={24} aria-hidden className="text-teal-700" />
             {t('today.confirmTitle', { name: partner?.name ?? 'Aisyah', count: pending.length })}
           </h2>
-          <p className="mt-1 text-base">{t('today.confirmBody')}</p>
+          <p className="mt-1 text-base text-muted">{t('today.confirmBody')}</p>
           <ul className="mt-4 space-y-2">
             {pending.map((p) => {
               const Icon = HELP_ICONS[p.help]
               return (
-                <li key={p.id} className="flex flex-wrap items-center gap-4 rounded-card bg-white px-4 py-3 shadow-soft">
+                <li
+                  key={p.id}
+                  className="grid grid-cols-[auto_1fr] items-center gap-3 rounded-card bg-surface px-4 py-3 sm:grid-cols-[auto_1fr_auto]"
+                >
                   <Icon size={22} aria-hidden />
-                  <span className="flex-1 text-base font-medium">
+                  <span className="text-base font-medium">
                     {t(`help.${p.help}.title`)} · {p.hours} h · {formatDay(p.date, lang)}
                   </span>
-                  <Button size="md" variant="dark" icon={<CheckCircle2 size={18} aria-hidden />} onClick={() => confirmTask(p.id)}>
+                  <Button
+                    size="md"
+                    variant="teal"
+                    className="max-sm:col-span-2 max-sm:w-full"
+                    icon={<CheckCircle2 size={18} aria-hidden />}
+                    onClick={() => confirmTask(p.id)}
+                  >
                     {t('today.confirm')}
                   </Button>
                 </li>
@@ -104,7 +114,7 @@ export function HostToday() {
                           : ''}
                 </p>
                 <Button
-                  variant="dark"
+                  variant={pending.length > 0 ? 'secondary' : 'dark'}
                   size="lg"
                   icon={<ArrowRight size={18} aria-hidden />}
                   className="flex-row-reverse"
@@ -144,7 +154,7 @@ export function HostToday() {
         <aside className="space-y-6">
           <section className="overflow-hidden rounded-card border border-line">
             <div className="aspect-[16/10]">
-              <Photo hue={262} scene="room" />
+              <Photo hue={SATO_HUE} scene="room" />
             </div>
             <div className="space-y-3 p-5">
               <div>

@@ -57,7 +57,7 @@ export function ListingCard({ l, highlight = false }: { l: Listing; highlight?: 
             type="button"
             aria-label={t('card.prev')}
             onClick={() => go(i - 1)}
-            className="absolute left-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-white/95 opacity-0 shadow-soft transition group-hover:opacity-100 focus-visible:opacity-100"
+            className="absolute left-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 opacity-0 shadow-soft transition group-hover:opacity-100 focus-visible:opacity-100"
           >
             <ChevronLeft size={18} aria-hidden />
           </button>
@@ -67,7 +67,7 @@ export function ListingCard({ l, highlight = false }: { l: Listing; highlight?: 
             type="button"
             aria-label={t('card.next')}
             onClick={() => go(i + 1)}
-            className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full bg-white/95 opacity-0 shadow-soft transition group-hover:opacity-100 focus-visible:opacity-100"
+            className="absolute right-2 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/95 opacity-0 shadow-soft transition group-hover:opacity-100 focus-visible:opacity-100"
           >
             <ChevronRight size={18} aria-hidden />
           </button>

@@ -6,6 +6,7 @@ import { SAFEGUARD_KEYS, useStore } from '../../store'
 import { useL } from '../../lib/hooks'
 import type { CoordMessage, ReferralKind } from '../../data/types'
 
+// Routine first, then the two escalations (shown in the danger style).
 const REFERRALS: ReferralKind[] = ['family', 'careManager', 'municipal', 'police']
 
 /** Shown to host and housemate while the coordinator has paused the live case. */
@@ -40,7 +41,7 @@ export function SafeguardPanel({ caseId }: { caseId: string }) {
         {SAFEGUARD_KEYS.map((k) => (
           <li key={k}>
             <label className="flex cursor-pointer items-start gap-3 rounded-btn px-2 py-1.5 text-base hover:bg-surface">
-              <input type="checkbox" checked={!!done[k]} onChange={() => toggle(caseId, k)} className="mt-1 h-5 w-5 accent-teal-700" />
+              <input type="checkbox" checked={!!done[k]} onChange={() => toggle(caseId, k)} className="mt-1 h-5 w-5 accent-ink" />
               <span>{t(`coord.sg.${k}`)}</span>
             </label>
           </li>
@@ -51,7 +52,7 @@ export function SafeguardPanel({ caseId }: { caseId: string }) {
         <Button
           className="mt-2"
           size="sm"
-          variant={paused ? 'secondary' : 'ghost'}
+          variant="secondary"
           icon={paused ? <PlayCircle size={16} aria-hidden /> : <PauseCircle size={16} aria-hidden />}
           onClick={() => setPaused(caseId, !paused)}
         >
@@ -79,7 +80,7 @@ export function ReferralPanel({ caseId }: { caseId: string }) {
           <Button
             key={k}
             size="sm"
-            variant="secondary"
+            variant={k === 'municipal' || k === 'police' ? 'danger' : 'secondary'}
             disabled={k === 'family' && !familyOk}
             title={k === 'family' && !familyOk ? t('coord.ref.noConsent') : undefined}
             onClick={() => add(caseId, k)}

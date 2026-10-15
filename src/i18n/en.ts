@@ -852,6 +852,7 @@ export const en = {
     reportSentBody: 'A coordinator has your report and will be in touch.',
   },
   coord: {
+    grp: { safety: 'Safeguarding and referrals', escalation: 'Escalation, time and notes' },
     sg: {
       title: 'Safeguarding checks',
       metAlone: 'Met the host alone at least once',

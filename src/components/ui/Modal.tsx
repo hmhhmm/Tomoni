@@ -43,14 +43,14 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label={t('common.close')}
-            className="grid h-10 w-10 place-items-center rounded-full hover:bg-surface"
+            className="grid h-11 w-11 place-items-center rounded-full hover:bg-surface"
           >
             <X size={20} aria-hidden />
           </button>
           <h2 id="modal-title" className="flex-1 text-center text-base font-semibold">
             {title}
           </h2>
-          <span className="w-10" aria-hidden />
+          <span className="w-11" aria-hidden />
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-5">{children}</div>
         {footer && <div className="flex items-center justify-between gap-3 border-t border-soft px-5 py-3">{footer}</div>}
