@@ -452,6 +452,9 @@ export const zh: Widen<typeof en> = {
     todoMessages_other: '{{count}} 条未读消息',
     todoCheckin: '第 {{week}} 周确认',
     confirm: '确认',
+    meetConfirmedTitle: '{{name}}已确认见面',
+    meetConfirmedBody: '{{when}} · {{place}}。见面之后，就可以开始试住。',
+    dismiss: '关闭',
     next: {
       none: '查看申请人',
       meet: '安排见面',

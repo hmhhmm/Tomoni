@@ -452,6 +452,9 @@ export const ja: Widen<typeof en> = {
     todoMessages_other: '未読メッセージが{{count}}件',
     todoCheckin: '第{{week}}週の確認',
     confirm: '確認する',
+    meetConfirmedTitle: '{{name}}さんが会う日を確認しました',
+    meetConfirmedBody: '{{when}}・{{place}}。会ったあと、お試し滞在を始められます。',
+    dismiss: '閉じる',
     next: {
       none: '応募者を見る',
       meet: '会う日を決める',

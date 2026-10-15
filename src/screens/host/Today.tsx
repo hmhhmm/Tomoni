@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowRight, CheckCircle2, ClipboardCheck, Pencil, Clock } from 'lucide-react'
+import { ArrowRight, CalendarCheck, CheckCircle2, ClipboardCheck, Pencil, Clock } from 'lucide-react'
 import { Page, FictionalTag, SectionTitle } from '../../components/domain/Bits'
 import { Avatar } from '../../components/ui/Avatar'
 import { Button, LinkButton } from '../../components/ui/Button'
@@ -9,10 +9,10 @@ import { StepBar } from '../../components/domain/StepBar'
 import { HourMeter } from '../../components/domain/HourMeter'
 import { useStore, trialDay } from '../../store'
 import { costs } from '../../data/pricing'
-import { stageIndex } from '../../data/journey'
+import { MEET_SLOTS, stageIndex } from '../../data/journey'
 import { AREAS } from '../../data/seed'
 import { HELP_ICONS } from '../../lib/helps'
-import { formatDay } from '../../lib/format'
+import { formatDay, formatDayTime } from '../../lib/format'
 import { useL } from '../../lib/hooks'
 import { SATO_HUE } from '../../tokens'
 
@@ -21,6 +21,10 @@ export function HostToday() {
   const text = useL()
   const nav = useNavigate()
   const { draft, helps, applicants, match, tasks, confirmTask, lang } = useStore()
+  const seeMeetConfirm = useStore((s) => s.seeMeetConfirm)
+  // Shown from Aisyah's confirmation until Mrs Sato dismisses it, opens Stay, or the trial starts.
+  const meetNotice = match.stage === 'meet' && !!match.meetConfirmed && !match.meetConfirmSeen
+  const slot = MEET_SLOTS.find((x) => x.id === match.meetSlot)
   const area = AREAS.find((a) => a.id === draft.areaId)!
   const c = costs(draft.standardRent, draft.homeshareRent, helps)
   const pending = tasks.filter((x) => x.status === 'pending')
@@ -49,6 +53,33 @@ export function HostToday() {
       </div>
 
       {/* Logged help waiting for her OK comes first: it is the one thing only she can do. */}
+      {/* Aisyah confirmed the meet-up: tell Mrs Sato until she has seen it. */}
+      {meetNotice && slot && (
+        <section
+          role="status"
+          aria-labelledby="meet-confirmed-title"
+          className="mb-6 flex flex-wrap items-start gap-4 rounded-sheet border border-teal-100 bg-teal-50 p-5 sm:p-6"
+        >
+          <CalendarCheck size={28} aria-hidden className="mt-0.5 shrink-0 text-teal-700" />
+          <div className="min-w-0 flex-1">
+            <h2 id="meet-confirmed-title" className="text-xl font-semibold text-teal-700">
+              {t('today.meetConfirmedTitle', { name: partner?.name ?? 'Aisyah' })}
+            </h2>
+            <p className="mt-1 text-base">
+              {t('today.meetConfirmedBody', { when: formatDayTime(slot.date(), lang), place: t(`stay.place.${slot.place}`) })}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <LinkButton to="/saito/stay" variant="dark" icon={<ArrowRight size={18} aria-hidden />} className="flex-row-reverse">
+                {t('chat.viewStay')}
+              </LinkButton>
+              <Button variant="ghost" onClick={seeMeetConfirm}>
+                {t('today.dismiss')}
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {pending.length > 0 && (
         <section aria-labelledby="confirm-title" className="mb-10 rounded-sheet border border-line bg-white p-5 shadow-lift sm:p-6">
           <h2 id="confirm-title" className="flex items-center gap-2 text-xl font-semibold">
@@ -114,6 +145,26 @@ export function HostToday() {
               </div>
             </div>
           </section>
+
+          {/* Weekly help sits under the journey, at the same width, so the main column reads top to bottom. */}
+          <section>
+            <SectionTitle>{t('meter.label')}</SectionTitle>
+            <div className="rounded-card border border-line p-6">
+              <HourMeter value={c.weeklyHours} label={t('today.mHours')} />
+              <ul className="mt-5 flex flex-wrap gap-2">
+                {Object.entries(helps).map(([id, v]) => (
+                  <li key={id} className="rounded-full bg-surface px-3 py-1.5 text-base">
+                    {t(`help.${id}.title`)} · {v!.h} h
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-5 border-t border-soft pt-5">
+                <LinkButton to="/saito/help" variant="secondary" icon={<Clock size={16} aria-hidden />}>
+                  {t('today.editHelp')}
+                </LinkButton>
+              </div>
+            </div>
+          </section>
         </div>
 
         <aside className="space-y-6">
@@ -137,19 +188,6 @@ export function HostToday() {
                 </LinkButton>
               </div>
             </div>
-          </section>
-          <section className="rounded-card border border-line p-5">
-            <HourMeter value={c.weeklyHours} />
-            <ul className="mt-4 flex flex-wrap gap-2">
-              {Object.entries(helps).map(([id, v]) => (
-                <li key={id} className="rounded-full bg-surface px-3 py-1 text-sm">
-                  {t(`help.${id}.title`)} · {v!.h} h
-                </li>
-              ))}
-            </ul>
-            <LinkButton to="/saito/help" variant="secondary" size="sm" className="mt-4" icon={<Clock size={14} aria-hidden />}>
-              {t('today.editHelp')}
-            </LinkButton>
           </section>
         </aside>
       </div>
