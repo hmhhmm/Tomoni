@@ -473,6 +473,9 @@ export const ms: Widen<typeof en> = {
     todoMessages_other: '{{count}} mesej belum dibaca',
     todoCheckin: 'Semakan minggu ke-{{week}}',
     confirm: 'Sahkan',
+    meetConfirmedTitle: '{{name}} telah mengesahkan pertemuan',
+    meetConfirmedBody: '{{when}} · {{place}}. Selepas berjumpa, anda boleh memulakan penginapan percubaan.',
+    dismiss: 'Tutup',
     next: {
       none: 'Lihat siapa yang memohon',
       meet: 'Rancang pertemuan',

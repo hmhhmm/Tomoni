@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowRight, BedDouble, CalendarCheck, Check, DoorOpen, FileSignature, HandHeart, MapPin, Pencil, Send, Undo2, Users } from 'lucide-react'
@@ -21,6 +21,11 @@ import { SATO_HUE } from '../tokens'
 export function Stay() {
   const { t } = useTranslation()
   const p = usePath()
+  const seeMeetConfirm = useStore((s) => s.seeMeetConfirm)
+  const isHost = useStore((s) => s.persona === 'host')
+  useEffect(() => {
+    if (isHost) seeMeetConfirm()
+  }, [isHost, seeMeetConfirm])
   const text = useL()
   const nav = useNavigate()
   const { persona, lang, match, applicants, draft, pactHelps, declined, bookMeet, clearMeet, startTrial, endTrial, resumeTrial, goPact, pactSigned } =

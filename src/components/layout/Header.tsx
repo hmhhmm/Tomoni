@@ -156,21 +156,11 @@ const Divider = () => <div className="my-2 border-t border-soft" role="separator
 
 export function Header() {
   const { t } = useTranslation()
-  const nav = useNavigate()
-  const { persona, setPersona, textLevel, setTextLevel, tenant, loadScenario } = useStore()
-  const say = useUI((s) => s.say)
+  const { persona, textLevel, setTextLevel } = useStore()
   const items = useNav()
   const isActive = useIsActive()
   const key = persona ?? 'none'
   const sizes = RULES.rootPx[key]
-  const who = { host: t('names.sato'), tenant: tenant.name, family: t('names.emi') }
-  const hue = { host: SATO_HUE, tenant: 172, family: 28 }
-
-  const personas = [
-    { id: 'host' as const, label: t('menu.asHost', { name: who.host }), icon: <KeyRound size={20} aria-hidden />, to: '/saito' },
-    { id: 'tenant' as const, label: t('menu.asTenant', { name: who.tenant }), icon: <Search size={20} aria-hidden />, to: '/aisha' },
-    { id: 'family' as const, label: t('menu.asFamily', { name: who.family }), icon: <HandHeart size={20} aria-hidden />, to: '/family' },
-  ]
 
   return (
     <header className="sticky top-0 z-30 border-b border-soft bg-white/95 text-[15px] backdrop-blur" id="site-header">
@@ -260,124 +250,154 @@ export function Header() {
             <span className="hidden sm:inline">{t('safety.short')}</span>
           </Link>
 
-          <Popover
-            label={t('menu.title')}
-            button={({ toggle, open }) => (
-              <button
-                type="button"
-                onClick={toggle}
-                aria-expanded={open}
-                aria-haspopup="dialog"
-                className="flex h-11 items-center gap-2 rounded-full border border-line py-1 pl-3 pr-1 transition hover:shadow-lift"
-              >
-                <Menu size={18} aria-hidden />
-                <span className="sr-only">{t('menu.title')}</span>
-                {persona ? (
-                  <Avatar hue={hue[persona]} size={34} label={who[persona]} />
-                ) : (
-                  <span className="grid h-[34px] w-[34px] place-items-center rounded-full bg-muted text-white">
-                    <UserRound size={18} aria-hidden />
-                  </span>
-                )}
-              </button>
-            )}
-          >
-            {(close) => (
-              <>
-                <p className="px-4 pb-1 pt-2 text-sm font-semibold text-muted">{t('menu.switch')}</p>
-                {personas.map((p) => (
-                  <Item
-                    key={p.id}
-                    checked={persona === p.id}
-                    icon={p.icon}
-                    strong={persona === p.id}
-                    onClick={() => {
-                      setPersona(p.id)
-                      close()
-                      nav(p.id === 'family' && !useStore.getState().familyConsent ? '/family/invite' : p.to)
-                    }}
-                  >
-                    {p.label}
-                  </Item>
-                ))}
-                {(persona === 'host' || persona === 'family') && (
-                  <>
-                    <Divider />
-                    <p className="px-4 pb-1 text-sm font-semibold text-muted">{t('common.textSize')}</p>
-                    <div className="flex gap-2 px-4 pb-1" role="radiogroup" aria-label={t('common.textSize')}>
-                      {[0, 1, 2].map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          role="radio"
-                          aria-checked={textLevel === n}
-                          onClick={() => setTextLevel(n as 0 | 1 | 2)}
-                          className={`h-11 flex-1 rounded-lg border text-[15px] font-semibold ${textLevel === n ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`}
-                        >
-                          {['A', 'A+', 'A++'][n]}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-                <Divider />
-                {persona === 'tenant' && (
-                  <Item
-                    icon={<UserRound size={20} aria-hidden />}
-                    onClick={() => {
-                      close()
-                      nav('/aisha/account')
-                    }}
-                  >
-                    {t('menu.account')}
-                  </Item>
-                )}
-                <Item
-                  icon={<ShieldAlert size={20} aria-hidden />}
-                  onClick={() => {
-                    close()
-                    nav('/safety')
-                  }}
-                >
-                  {t('menu.safety')}
-                </Item>
-                <Item
-                  icon={<Monitor size={20} aria-hidden />}
-                  onClick={() => {
-                    close()
-                    nav('/coordinator')
-                  }}
-                >
-                  {t('menu.coordinator')}
-                </Item>
-                <Divider />
-                <Item
-                  icon={<BedDouble size={20} aria-hidden />}
-                  onClick={() => {
-                    loadScenario('living')
-                    say(t('menu.loadedLiving'))
-                    close()
-                    nav(pathFor(persona, '/stay'))
-                  }}
-                >
-                  {t('menu.loadLiving')}
-                </Item>
-                <Item
-                  icon={<RotateCcw size={20} aria-hidden />}
-                  onClick={() => {
-                    loadScenario('start')
-                    say(t('menu.loadedStart'))
-                    close()
-                    nav('/')
-                  }}
-                >
-                  {t('menu.reset')}
-                </Item>
-              </>
-            )}
-          </Popover>
+          <ViewMenu />
         </div>
       </div>
     </header>
+  )
+}
+
+/**
+ * The avatar menu at the top right: switch between Mrs Sato, Aisyah, Emi and the coordinator desk,
+ * plus text size, account, Safety and sample data. Shared by the app header and the coordinator desk.
+ */
+export function ViewMenu() {
+  const { t } = useTranslation()
+  const nav = useNavigate()
+  const { pathname } = useLocation()
+  const { persona, setPersona, textLevel, setTextLevel, tenant, loadScenario } = useStore()
+  const say = useUI((s) => s.say)
+  const onDesk = pathname.startsWith('/coordinator')
+  const who = { host: t('names.sato'), tenant: tenant.name, family: t('names.emi') }
+  const hue = { host: SATO_HUE, tenant: 172, family: 28 }
+  const personas = [
+    { id: 'host' as const, label: t('menu.asHost', { name: who.host }), icon: <KeyRound size={20} aria-hidden />, to: '/saito' },
+    { id: 'tenant' as const, label: t('menu.asTenant', { name: who.tenant }), icon: <Search size={20} aria-hidden />, to: '/aisha' },
+    { id: 'family' as const, label: t('menu.asFamily', { name: who.family }), icon: <HandHeart size={20} aria-hidden />, to: '/family' },
+  ]
+
+  return (
+    <Popover
+      label={t('menu.title')}
+      button={({ toggle, open }) => (
+        <button
+          type="button"
+          onClick={toggle}
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          className="flex h-11 items-center gap-2 rounded-full border border-line py-1 pl-3 pr-1 transition hover:shadow-lift"
+        >
+          <Menu size={18} aria-hidden />
+          <span className="sr-only">{t('menu.title')}</span>
+          {onDesk ? (
+            <span className="grid h-[34px] w-[34px] place-items-center rounded-full bg-ink text-white">
+              <Monitor size={18} aria-hidden />
+            </span>
+          ) : persona ? (
+            <Avatar hue={hue[persona]} size={34} label={who[persona]} />
+          ) : (
+            <span className="grid h-[34px] w-[34px] place-items-center rounded-full bg-muted text-white">
+              <UserRound size={18} aria-hidden />
+            </span>
+          )}
+        </button>
+      )}
+    >
+      {(close) => (
+        <>
+          <p className="px-4 pb-1 pt-2 text-sm font-semibold text-muted">{t('menu.switch')}</p>
+          {personas.map((p) => (
+            <Item
+              key={p.id}
+              checked={!onDesk && persona === p.id}
+              icon={p.icon}
+              strong={!onDesk && persona === p.id}
+              onClick={() => {
+                setPersona(p.id)
+                close()
+                nav(p.id === 'family' && !useStore.getState().familyConsent ? '/family/invite' : p.to)
+              }}
+            >
+              {p.label}
+            </Item>
+          ))}
+          <Item
+            checked={onDesk}
+            strong={onDesk}
+            icon={<Monitor size={20} aria-hidden />}
+            onClick={() => {
+              close()
+              nav('/coordinator')
+            }}
+          >
+            {t('menu.coordinator')}
+          </Item>
+          {!onDesk && (persona === 'host' || persona === 'family') && (
+            <>
+              <Divider />
+              <p className="px-4 pb-1 text-sm font-semibold text-muted">{t('common.textSize')}</p>
+              <div className="flex gap-2 px-4 pb-1" role="radiogroup" aria-label={t('common.textSize')}>
+                {[0, 1, 2].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    role="radio"
+                    aria-checked={textLevel === n}
+                    onClick={() => setTextLevel(n as 0 | 1 | 2)}
+                    className={`h-11 flex-1 rounded-lg border text-[15px] font-semibold ${textLevel === n ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`}
+                  >
+                    {['A', 'A+', 'A++'][n]}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+          <Divider />
+          {!onDesk && persona === 'tenant' && (
+            <Item
+              icon={<UserRound size={20} aria-hidden />}
+              onClick={() => {
+                close()
+                nav('/aisha/account')
+              }}
+            >
+              {t('menu.account')}
+            </Item>
+          )}
+          <Item
+            icon={<ShieldAlert size={20} aria-hidden />}
+            onClick={() => {
+              close()
+              nav('/safety')
+            }}
+          >
+            {t('menu.safety')}
+          </Item>
+          <Divider />
+          <Item
+            icon={<BedDouble size={20} aria-hidden />}
+            onClick={() => {
+              loadScenario('living')
+              say(t('menu.loadedLiving'))
+              close()
+              if (!onDesk) nav(pathFor(persona, '/stay'))
+            }}
+          >
+            {t('menu.loadLiving')}
+          </Item>
+          <Item
+            icon={<RotateCcw size={20} aria-hidden />}
+            onClick={() => {
+              loadScenario('start')
+              say(t('menu.loadedStart'))
+              close()
+              if (!onDesk) nav('/')
+            }}
+          >
+            {t('menu.reset')}
+          </Item>
+        </>
+      )}
+    </Popover>
   )
 }

@@ -454,6 +454,9 @@ export const vi: Widen<typeof en> = {
     todoMessages_other: '{{count}} tin nhắn chưa đọc',
     todoCheckin: 'Hỏi thăm tuần {{week}}',
     confirm: 'Xác nhận',
+    meetConfirmedTitle: '{{name}} đã xác nhận buổi gặp',
+    meetConfirmedBody: '{{when}} · {{place}}. Sau khi gặp, bạn có thể bắt đầu ở thử.',
+    dismiss: 'Đóng',
     next: {
       none: 'Xem ai đã đăng ký',
       meet: 'Lên lịch gặp',

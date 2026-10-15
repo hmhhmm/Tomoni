@@ -448,6 +448,9 @@ export const en = {
     todoMessages_other: '{{count}} unread messages',
     todoCheckin: 'Week {{week}} check-in',
     confirm: 'Confirm',
+    meetConfirmedTitle: '{{name}} confirmed the meet-up',
+    meetConfirmedBody: '{{when}} · {{place}}. After you meet, you can start the trial stay.',
+    dismiss: 'Dismiss',
     next: {
       none: 'See who applied',
       meet: 'Plan the meet-up',

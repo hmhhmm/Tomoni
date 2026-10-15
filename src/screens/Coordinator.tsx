@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   AlertTriangle,
-  ArrowLeft,
   Check,
   ChevronDown,
   FileSignature,
@@ -20,6 +18,7 @@ import { agreedHelps, safeguardsDone, useStore, missedRun, weekHours } from '../
 import { CoordChat, ReferralPanel, SafeguardPanel } from '../components/domain/CaseSafety'
 import { Wordmark } from '../components/layout/Wordmark'
 import { LangSelect } from '../components/layout/LangSelect'
+import { ViewMenu } from '../components/layout/Header'
 import { Chip } from '../components/ui/Chip'
 import { Button } from '../components/ui/Button'
 import { Textarea } from '../components/ui/Field'
@@ -185,9 +184,7 @@ export function Coordinator() {
           </div>
           <div className="flex items-center gap-2">
             <LangSelect />
-            <Link to="/" className="inline-flex h-11 items-center gap-2 rounded-btn bg-ink px-4 text-base font-semibold text-white">
-              <ArrowLeft size={16} aria-hidden /> {t('coord.back')}
-            </Link>
+            <ViewMenu />
           </div>
         </div>
       </header>

@@ -47,6 +47,8 @@ interface Match {
   meetSlot: string | null
   /** The housemate confirmed the booked meet-up from the chat. */
   meetConfirmed?: boolean
+  /** Mrs Sato has seen that the meet-up was confirmed (dismissed the notice or opened Stay). */
+  meetConfirmSeen?: boolean
   trialWeeks: number
   trialStart: string | null // ISO date
 }
@@ -112,6 +114,8 @@ interface Actions {
   bookMeet: (slot: string) => void
   clearMeet: () => void
   confirmMeet: () => void
+  /** Clears the host's "meet-up confirmed" notice. */
+  seeMeetConfirm: () => void
   startTrial: (weeks: number) => void
   endTrial: () => void
   resumeTrial: () => void
@@ -348,6 +352,7 @@ export const useStore = create<State>()(
         }),
       clearMeet: () => set((s) => ({ match: { ...s.match, meetSlot: null, meetConfirmed: false } })),
       // The housemate confirms from the chat notice; the host sees it in the chat and on Stay.
+      seeMeetConfirm: () => set((s) => (s.match.meetConfirmSeen ? {} : { match: { ...s.match, meetConfirmSeen: true } })),
       confirmMeet: () =>
         set((s) => {
           const key = s.match.applicantId
@@ -363,7 +368,7 @@ export const useStore = create<State>()(
             meetSlot: s.match.meetSlot,
           }
           return {
-            match: { ...s.match, meetConfirmed: true },
+            match: { ...s.match, meetConfirmed: true, meetConfirmSeen: false },
             threads: { ...s.threads, [key]: [...(s.threads[key] ?? []), notice] },
             unread: { ...s.unread, host: { ...s.unread.host, [key]: (s.unread.host[key] ?? 0) + 1 } },
           }
