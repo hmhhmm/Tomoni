@@ -1,4 +1,7 @@
+/** Language of content pairs and chat translation (prototype: English and Japanese). */
 export type Lang = 'en' | 'ja'
+/** Page language: every language IDEA.md lists. */
+export type UiLang = 'en' | 'ja' | 'ms' | 'vi' | 'zh'
 export type Pair = { en: string; ja: string }
 export type Persona = 'host' | 'tenant' | 'family' | null
 

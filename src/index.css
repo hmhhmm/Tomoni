@@ -126,3 +126,13 @@ dialog[open] {
     scroll-behavior: auto !important;
   }
 }
+
+/* Simplified Chinese pages use Chinese letterforms rather than the Japanese ones in Noto Sans JP. */
+html:lang(zh-Hans) body {
+  font-family: 'DM Sans', 'Noto Sans SC', system-ui, sans-serif;
+}
+html:lang(zh-Hans) h1,
+html:lang(zh-Hans) h2,
+html:lang(zh-Hans) h3 {
+  font-family: Poppins, 'Noto Sans SC', system-ui, sans-serif;
+}

@@ -22,6 +22,7 @@ import { FamilyDashboard, FamilyInvite } from './screens/family/Family'
 import { Safety } from './screens/Safety'
 import { Coordinator } from './screens/Coordinator'
 import { AishaHome, Forward, PersonaScope } from './lib/paths'
+import { htmlLangOf } from './i18n/langs'
 
 export default function App() {
   const lang = useStore((s) => s.lang)
@@ -36,7 +37,7 @@ export default function App() {
     return () => window.removeEventListener('storage', onStorage)
   }, [])
   useEffect(() => {
-    document.documentElement.lang = lang
+    document.documentElement.lang = htmlLangOf(lang)
     i18n.changeLanguage(lang)
   }, [lang])
 

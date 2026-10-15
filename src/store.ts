@@ -13,6 +13,7 @@ import type {
   HelpId,
   Helps,
   Lang,
+  UiLang,
   ListingDraft,
   Message,
   Persona,
@@ -51,7 +52,7 @@ interface Match {
 }
 
 interface Data {
-  lang: Lang
+  lang: UiLang
   persona: Persona
   textLevel: 0 | 1 | 2
   draft: ListingDraft
@@ -96,7 +97,7 @@ interface Data {
 }
 
 interface Actions {
-  setLang: (l: Lang) => void
+  setLang: (l: UiLang) => void
   setPersona: (p: Persona) => void
   setTextLevel: (n: 0 | 1 | 2) => void
   patchDraft: (p: Partial<ListingDraft>) => void
