@@ -230,7 +230,7 @@ export function Explore() {
               <button
                 type="submit"
                 aria-label={t('explore.searchBtn')}
-                className="m-1.5 grid h-12 w-12 shrink-0 place-items-center self-center justify-self-end rounded-full bg-gradient-to-r from-purple-600 to-purple-500 text-white transition hover:from-purple-700"
+                className="m-1.5 grid h-12 w-12 shrink-0 place-items-center self-center justify-self-end rounded-full bg-gradient-to-r from-rausch-400 via-rausch-600 to-rausch-700 text-white transition hover:brightness-95"
               >
                 <Search size={20} aria-hidden />
                 <span className="sr-only">{t('explore.searchBtn')}</span>

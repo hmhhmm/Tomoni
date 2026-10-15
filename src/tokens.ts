@@ -32,6 +32,11 @@ export const colors = {
   },
   amber: { 50: '#FFF6E5', 200: '#F6D58E', 700: '#8A5300' },
   rose: { 50: '#FFF0F0', 200: '#F5B5B5', 700: '#B3261E' },
+  /**
+   * Button red, after Airbnb's "Rausch". 500 is the logo red, fills only: white text on it is 3.5:1.
+   * Buttons use the 400 → 600 → 700 gradient, where every stop reaches at least 4.5:1 with white text.
+   */
+  rausch: { 50: '#FFF0F3', 100: '#FFE1E7', 400: '#E61E4D', 500: '#FF385C', 600: '#E31C5F', 700: '#D70466' },
 } as const
 
 export const radius = { chip: '999px', card: '16px', sheet: '20px', input: '12px', btn: '10px' } as const
